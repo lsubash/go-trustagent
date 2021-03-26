@@ -8,7 +8,7 @@
 # 3. Create tagent user
 # 4. Create directories, copy files and own them by tagent user.
 # 5. Install application-agent
-# 6. Make sure tpm2-abrmd is started and deploy tagent service.
+# 6. Deploy the tagent service.
 # 7. If 'automatic provisioning' is enabled (PROVISION_ATTESTATION=y), initiate 'tagent setup'.
 #    Otherwise, exit with a message that the user must provision the trust agent and start the
 #    service.
@@ -81,9 +81,8 @@ TRUSTAGENT_BIN_DIR=$TRUSTAGENT_HOME/bin
 TRUSTAGENT_LOG_DIR=/var/log/trustagent
 TRUSTAGENT_CFG_DIR=$TRUSTAGENT_HOME/configuration
 TRUSTAGENT_VAR_DIR=$TRUSTAGENT_HOME/var/
-TRUSTAGENT_YUM_PACKAGES="tpm2-tss-2.0.0-4.el8.x86_64 tpm2-abrmd-2.1.1-3.el8.x86_64 dmidecode compat-openssl10 logrotate redhat-lsb-core"
+TRUSTAGENT_YUM_PACKAGES="tpm2-tss-2.0.0-4.el8.x86_64 dmidecode compat-openssl10 logrotate redhat-lsb-core"
 TBOOT_DEPENDENCY="tboot-1.9.*"
-TPM2_ABRMD_SERVICE=tpm2-abrmd.service
 
 #--------------------------------------------------------------------------------------------------
 # 1. Script prerequisites
@@ -236,13 +235,6 @@ is_reboot_required() {
 is_reboot_required
 rebootRequired=$?
 
-# make sure tpm2-abrmd service is installed
-systemctl list-unit-files --no-pager | grep $TPM2_ABRMD_SERVICE >/dev/null
-if [ $? -ne 0 ]; then
-    echo_failure "The tpm2-abrmd service must be installed"
-    exit 1
-fi
-
 export LOG_ROTATION_PERIOD=${LOG_ROTATION_PERIOD:-weekly}
 export LOG_COMPRESS=${LOG_COMPRESS:-compress}
 export LOG_DELAYCOMPRESS=${LOG_DELAYCOMPRESS:-delaycompress}
@@ -294,7 +286,7 @@ if ! getent passwd $TRUSTAGENT_USERNAME 2>&1 >/dev/null; then
     usermod --lock $TRUSTAGENT_USERNAME
 fi
 
-# to access tpm, abrmd, etc.
+# to access tpm etc.
 usermod -a -G tss $TRUSTAGENT_USERNAME
 
 #--------------------------------------------------------------------------------------------------
@@ -380,17 +372,12 @@ fi
 #--------------------------------------------------------------------------------------------------
 # 6. Enable/configure services, etc.
 #--------------------------------------------------------------------------------------------------
-# make sure the tss user owns /dev/tpm0 or tpm2-abrmd service won't start (this file does not
+# make sure the tss user owns /dev/tpmrm0 (this file does not
 # exist when using the tpm simulator, so check for its existence)
-if [ -c /dev/tpm0 ]; then
-    chown tss:tss /dev/tpm0
-fi
 if [ -c /dev/tpmrm0 ]; then
     chown tss:tss /dev/tpmrm0
 fi
 
-# enable tpm2-abrmd service (start below if automatic provisioning is enabled)
-systemctl enable $TPM2_ABRMD_SERVICE
 
 # Enable tagent service and tagent 'init' service
 systemctl disable $TRUSTAGENT_INIT_SERVICE >/dev/null 2>&1
@@ -404,21 +391,6 @@ systemctl daemon-reload
 #--------------------------------------------------------------------------------------------------
 if [[ "$PROVISION_ATTESTATION" == "y" || "$PROVISION_ATTESTATION" == "Y" || "$PROVISION_ATTESTATION" == "yes" ]]; then
     echo "Automatic provisioning is enabled, using HVS url $HVS_URL"
-
-    # make sure that tpm2-abrmd is running before running 'tagent setup'
-    systemctl status $TPM2_ABRMD_SERVICE 2>&1 >/dev/null
-    if [ $? -ne 0 ]; then
-        echo "Starting $TPM2_ABRMD_SERVICE"
-        systemctl start $TPM2_ABRMD_SERVICE 2>&1 >/dev/null
-        sleep 3
-
-        # TODO:  in production we want to check that is is running, but in development
-        # the simulator needs to be started first -- for now warn, don't error...
-        systemctl status $TPM2_ABRMD_SERVICE 2>&1 >/dev/null
-        if [ $? -ne 0 ]; then
-            echo_warning "WARNING: Could not start $TPM2_ABRMD_SERVICE"
-        fi
-    fi
 
     $TRUSTAGENT_EXE setup
     setup_results=$?

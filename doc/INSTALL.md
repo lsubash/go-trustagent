@@ -6,14 +6,14 @@
 3. TPM 2.0 device
 4. RHEL 8.1 Host
 5. Packages...
-    1. tpm2-abrmd (v2.0.x)
+    1. tpm2-tss (v2.0.x)
     2. dmidecode (v3.x)
     3. redhat-lsb-core (v4.1.x)
     4. tboot (v1.9.7.x)
     5. compat-openssl10 (v1.0.x)
     6. logrotate
 
-    `yum -y install tpm2-abrmd dmidecode redhat-lsb-core tboot compat-openssl10`
+    `yum -y install tpm2-tss dmidecode redhat-lsb-core tboot compat-openssl10`
 
 # Installation Steps
 There are two methods for installing GTA.

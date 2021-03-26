@@ -36,7 +36,7 @@ During minimal installation, the installer performs the following activities...
 ## Automatic Provisioning
 When the GTA installer is invoked with a valid `trustagent.env` file in the same directory (see [trustagent.env Reference](#trustagent.env-reference)), and that file contains `PROVISION_ATTESTATION=Y`, the installer will...
 1. Perform the 'minimal installation' steps listed above.
-2. Starts the `tpm2-abrmd` service to provision the TPM, AAS/CMS and HVS.
+2. Provision the TPM, AAS/CMS and HVS.
 3. Invokes `tagent setup` (see [Setup](#setup) for more information).
 4. Start the `tagent` service.
 
@@ -392,8 +392,7 @@ The following files are present after installation, setup and measured launch.
 ## Software Dependencies
 The GTA installer will update the system with the following dependencies.
 
-    1. tpm2-abrmd-2.1
-    2. tpm2-tss-2.0
+    1. tpm2-tss-2.0
     2. dmidecode-3
     3. redhat-lsb-core-4.1
     4. tboot-1.9.7*

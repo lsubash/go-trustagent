@@ -10,7 +10,7 @@ The Trust Agent resides on physical servers and enables both remote attestation 
 - RHEL 8.0 or greater
 - TPM 2.0 device
 - Packages
-    - tpm2-abrmd (v2.0.x)
+    - tpm2-tss (v2.0.x)
     - dmidecode (v3.x)
     - redhat-lsb-core (v4.1.x)
     - tboot (v1.9.7.x)
