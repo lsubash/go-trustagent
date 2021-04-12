@@ -4,6 +4,7 @@ GITCOMMITDATE := $(shell git log -1 --date=short --pretty=format:%cd)
 GITBRANCH := $(CI_COMMIT_BRANCH)
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%SZ)
 VERSION := $(or ${GITTAG}, v1.0.0)
+PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 
 # TODO:  Update make file to support debug/release builds (release build to use secure gcflags)
 # -fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv -fPIE -fPIC -fstack-protector-strong -O2 -D
@@ -47,6 +48,17 @@ unit_test: unit_test_bin
 	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go test ./... -tags=unit_test -coverpkg=./... -coverprofile out/cover.out
 	go tool cover -func out/cover.out
 	go tool cover -html=out/cover.out -o out/cover.html
+
+oci-archive: gta
+ifeq ($(PROXY_EXISTS),1)
+	docker build -t isecl/tagent:$(VERSION) --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} -f dist/docker/Dockerfile .
+else
+	docker build -t isecl/tagent:$(VERSION) -f dist/docker/Dockerfile .
+endif
+	skopeo copy docker-daemon:isecl/tagent:$(VERSION) oci-archive:out/tagent-$(VERSION)-$(GITCOMMIT).tar
+
+k8s: oci-archive
+	cp -r dist/k8s out/
 
 all: clean installer
 

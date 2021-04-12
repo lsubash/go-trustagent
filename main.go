@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/utils"
 	"intel/isecl/go-trust-agent/v3/config"
 	"intel/isecl/go-trust-agent/v3/constants"
 	"intel/isecl/go-trust-agent/v3/resource"
@@ -356,6 +357,11 @@ func main() {
 			log.Errorf("main:main() Error While creating measureLog.xml: %s\n", err.Error())
 		}
 
+		// tagent container is run as root user, skip user look up for tagent when run as a container
+		if utils.IsContainerEnv() {
+			return
+		}
+
 		tagentUser, err := user.Lookup(constants.TagentUserName)
 		if err != nil {
 			log.Errorf("main:main() Could not find user '%s'", constants.TagentUserName)
@@ -400,9 +406,12 @@ func main() {
 		fmt.Println("tagent 'init' completed successful")
 
 	case "startService":
-		if currentUser.Username != constants.TagentUserName {
-			fmt.Printf("'tagent startWebService' must be run as the 'tagent' user, not  user '%s'\n", currentUser.Username)
-			os.Exit(1)
+		// tagent container is run as root user, skip user comparison when run as a container
+		if !utils.IsContainerEnv() {
+			if currentUser.Username != constants.TagentUserName {
+				fmt.Printf("'tagent startWebService' must be run as the 'tagent' user, not  user '%s'\n", currentUser.Username)
+				os.Exit(1)
+			}
 		}
 
 		cfg.LogConfiguration(cfg.Logging.LogEnableStdout)
@@ -531,12 +540,6 @@ func main() {
 			os.Exit(1)
 		}
 
-	case "config":
-		if len(os.Args) != 3 {
-			fmt.Printf("'config' requires an additional parameter.\n")
-		}
-
-		cfg.PrintConfigSetting(os.Args[2])
 	case "fetch-ekcert-with-issuer":
 		err = fetchEndorsementCert(cfg.Tpm.OwnerSecretKey)
 		if err != nil {

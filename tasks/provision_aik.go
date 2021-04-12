@@ -16,6 +16,7 @@ import (
 	"intel/isecl/go-trust-agent/v3/util"
 	"intel/isecl/lib/common/v3/setup"
 	"intel/isecl/lib/tpmprovider/v3"
+	"io/ioutil"
 	"os"
 
 	"github.com/intel-secl/intel-secl/v3/pkg/clients/hvsclient"
@@ -191,6 +192,11 @@ func (task *ProvisionAttestationIdentityKey) createAik() error {
 	if *task.aikSecretKey == "" {
 		*task.aikSecretKey, err = crypt.GetHexRandomString(20)
 		log.Debug("tasks/provision_aik:createAik() Generated new AIK secret key")
+	}
+
+	err = ioutil.WriteFile(constants.AikSecretKeyFile, []byte(*task.aikSecretKey), 0600)
+	if err != nil {
+		log.WithError(err).Error("Unable to write aik secret key")
 	}
 
 	tpm, err := task.tpmFactory.NewTpmProvider()

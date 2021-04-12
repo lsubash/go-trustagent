@@ -22,16 +22,24 @@ The Trust Agent resides on physical servers and enables both remote attestation 
 ## Software requirements
 - git
 - go >= `go1.12.1` & <= `go1.14.1`
+
+### Additional software requirements for building GTA container image in oci format
 - docker
+- skopeo
 
 # Build Instructions
 GTA use the `tpm-provider` library to access the TPM 2.0 device.  The following instructions assume that `gta-devel` docker image and container have been created as described in the 'Build Instructions' section of the `tpm-provider` project (see the README.md in that project for more details).
 
 1. cd `/docker_host/go-trust-agent`
-3. `make package`
-4. `tagent` and `trustagent-v1.0.0.bin` will be in the /out subdirectory
+2. `make package`
+3. `tagent` and `trustagent-v1.0.0.bin` will be in the /out subdirectory
 
 Note: The `gta-devel` docker container can be used in this fashion to build GTA, but cannot be used to run or debug GTA because `tpm2-abrmd` must run as a service under `systemd`.  See `Unit Testing and TPM Simulator` in the `tpm-provider` project for instructions to run `systemd`, `tpm2-abrmd` and the TPM simulator in the `gta-devel` container.
+
+# Build Instructions for container image
+1. cd `go-trust-agent`
+2. `make oci-archice`
+3.  `tagent-<version>-<commit-version>.tar` will be in the /out subdirectory 
 
 # Links
 - [Installation instructions](doc/INSTALL.md)

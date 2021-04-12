@@ -69,4 +69,5 @@ const (
 	DefaultWriteTimeout        = 10 * time.Second
 	DefaultIdleTimeout         = 10 * time.Second
 	DefaultMaxHeaderBytes      = 1 << 20
+	AikSecretKeyFile           = ConfigDir + "aiksecretkey"
 )

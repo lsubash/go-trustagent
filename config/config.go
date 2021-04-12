@@ -363,16 +363,6 @@ func (cfg *TrustAgentConfiguration) Validate() error {
 	return nil
 }
 
-func (cfg *TrustAgentConfiguration) PrintConfigSetting(settingKey string) {
-
-	switch settingKey {
-	case AIK_SECRET_KEY:
-		fmt.Printf("%s\n", cfg.Tpm.AikSecretKey)
-	default:
-		fmt.Printf("Unknown config parameter: %s\n", settingKey)
-	}
-}
-
 func (cfg *TrustAgentConfiguration) LogConfiguration(stdOut bool) {
 	log.Trace("config/config:LogConfiguration() Entering")
 	defer log.Trace("config/config:LogConfiguration() Leaving")
