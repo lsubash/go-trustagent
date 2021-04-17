@@ -148,7 +148,17 @@ Available Tasks for 'setup', all commands support env file flag
                                                         - BEARER_TOKEN=<token>                              : for authenticating with VS
                                                         - FLAVOR_UUIDS=<uuid1,uuid2,[...]>                  : CSV list of flavor UUIDs
                                                         - FLAVOR_LABELS=<flavorlabel1,flavorlabel2,[...]>   : CSV list of flavor labels                                                   
-    `
+  update-service-config                     - Updates service configuration  
+                                                     Required environment variables:
+                                                        - TRUSTAGENT_PORT=<port>                            : Trust Agent Listener Port
+                                                        - TA_SERVER_READ_TIMEOUT                            : Trustagent Server Read Timeout
+                                                        - TA_SERVER_READ_HEADER_TIMEOUT                     : Trustagent Read Header Timeout
+                                                        - TA_SERVER_WRITE_TIMEOUT                           : Tustagent Write Timeout                                                   
+                                                        - TA_SERVER_IDLE_TIMEOUT                            : Trustagent Idle Timeout                                                    
+                                                        - TA_SERVER_MAX_HEADER_BYTES                        : Trustagent Max Header Bytes Timeout                                                    
+                                                        - TRUSTAGENT_LOG_LEVEL                              : Logging Level                                                    
+                                                        - TA_ENABLE_CONSOLE_LOG                             : Trustagent Enable standard output                                                    
+                                                        - LOG_ENTRY_MAXLENGTH                               : Maximum length of each entry in a log                                                    `
 
 	fmt.Println(usage)
 }

@@ -43,22 +43,11 @@ const (
 	ServiceDisableCommand      = "systemctl disable " + ServiceName
 	ServiceDisableInitCommand  = "systemctl disable tagent_init.service"
 	UninstallTbootXmScript     = "/opt/tbootxm/bin/tboot-xm-uninstall.sh"
-	LogEntryMaxlengthEnv       = "LOG_ENTRY_MAXLENGTH"
 	TrustedJWTSigningCertsDir  = ConfigDir + "jwt/"
 	TrustedCaCertsDir          = ConfigDir + "cacerts/"
 	DefaultKeyAlgorithm        = "rsa"
 	DefaultKeyAlgorithmLength  = 3072
-	EnvBearerToken             = "BEARER_TOKEN"
 	JWTCertsCacheTime          = "1m"
-	EnvTPMOwnerSecret          = "TPM_OWNER_SECRET"
-	EnvMtwilsonAPIURL          = "HVS_URL"
-	EnvTAPort                  = "TRUSTAGENT_PORT"
-	EnvCMSBaseURL              = "CMS_BASE_URL"
-	EnvCMSTLSCertDigest        = "CMS_TLS_CERT_SHA384"
-	EnvAASBaseURL              = "AAS_API_URL"
-	EnvTLSCertCommonName       = "TA_TLS_CERT_CN"
-	EnvCertSanList             = "SAN_LIST"
-	EnvCurrentIP               = "CURRENT_IP"
 	DefaultTaTlsCn             = "Trust Agent TLS Certificate"
 	DefaultTaTlsSan            = "127.0.0.1,localhost"
 	TrustAgentEnvMaxLength     = 10000
@@ -70,4 +59,26 @@ const (
 	DefaultIdleTimeout         = 10 * time.Second
 	DefaultMaxHeaderBytes      = 1 << 20
 	AikSecretKeyFile           = ConfigDir + "aiksecretkey"
+)
+
+// Env Variables
+const (
+	EnvTPMOwnerSecret            = "TPM_OWNER_SECRET"
+	EnvMtwilsonAPIURL            = "HVS_URL"
+	EnvTAPort                    = "TRUSTAGENT_PORT"
+	EnvCMSBaseURL                = "CMS_BASE_URL"
+	EnvCMSTLSCertDigest          = "CMS_TLS_CERT_SHA384"
+	EnvAASBaseURL                = "AAS_API_URL"
+	EnvTLSCertCommonName         = "TA_TLS_CERT_CN"
+	EnvCertSanList               = "SAN_LIST"
+	EnvCurrentIP                 = "CURRENT_IP"
+	EnvBearerToken               = "BEARER_TOKEN"
+	EnvLogEntryMaxlength         = "LOG_ENTRY_MAXLENGTH"
+	EnvTALogLevel                = "TRUSTAGENT_LOG_LEVEL"
+	EnvTALogEnableConsoleLog     = "TA_ENABLE_CONSOLE_LOG"
+	EnvTAServerReadTimeout       = "TA_SERVER_READ_TIMEOUT"
+	EnvTAServerReadHeaderTimeout = "TA_SERVER_READ_HEADER_TIMEOUT"
+	EnvTAServerWriteTimeout      = "TA_SERVER_WRITE_TIMEOUT"
+	EnvTAServerIdleTimeout       = "TA_SERVER_IDLE_TIMEOUT"
+	EnvTAServerMaxHeaderBytes    = "TA_SERVER_MAX_HEADER_BYTES"
 )

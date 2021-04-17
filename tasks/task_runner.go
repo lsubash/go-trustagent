@@ -31,6 +31,7 @@ const (
 	GetConfiguredManifestCommand           = "get-configured-manifest"
 	ProvisionAttestationCommand            = "provision-attestation"
 	UpdateCertificatesCommand              = "update-certificates"
+	UpdateServiceConfigCommand             = "update-service-config"
 )
 
 var log = commLog.GetDefaultLogger()
@@ -130,6 +131,10 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		trustAgentPort: cfg.WebService.Port,
 	}
 
+	UpdateServiceConfigTask := &UpdateServiceConfig{
+		cfg: &cfg,
+	}
+
 	switch setupCmd {
 	case ProvisionAttestationCommand:
 		runner.Tasks = append(runner.Tasks, []setup.Task{downloadPrivacyCATask, takeOwnershipTask,
@@ -149,7 +154,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	case DefaultSetupCommand:
 		runner.Tasks = append(runner.Tasks, []setup.Task{downloadRootCACertTask, downloadTLSCertTask,
-			downloadPrivacyCATask, takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
+			downloadPrivacyCATask, takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask, UpdateServiceConfigTask}...)
 
 	case DownloadRootCACertCommand:
 		runner.Tasks = append(runner.Tasks, downloadRootCACertTask)
@@ -168,6 +173,9 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	case ProvisionPrimaryKeyCommand:
 		runner.Tasks = append(runner.Tasks, provisionPrimaryKeyTask)
+
+	case UpdateServiceConfigCommand:
+		runner.Tasks = append(runner.Tasks, UpdateServiceConfigTask)
 
 	default:
 		return nil, errors.New("Invalid setup command")
