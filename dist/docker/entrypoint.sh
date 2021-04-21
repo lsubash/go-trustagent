@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source /etc/secret-volume/secrets.txt
+export BEARER_TOKEN
+export TPM_OWNER_SECRET
+
 COMPONENT_NAME=trustagent
 PRODUCT_HOME_DIR=/opt/$COMPONENT_NAME
 PRODUCT_BIN_DIR=$PRODUCT_HOME_DIR/bin
