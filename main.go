@@ -60,7 +60,7 @@ Available Commands:
   help|-h|-help                    Show this help message.
   setup [all] [task]               Run setup task.
   uninstall                        Uninstall trust agent.
-  version                          Print build version info.
+  --version                        Print build version info.
   start                            Start the trust agent service.
   stop                             Stop the trust agent service.
   status                           Get the status of the trust agent service.
@@ -337,7 +337,7 @@ func main() {
 
 	cmd := os.Args[1]
 	switch cmd {
-	case "version":
+	case "--version":
 		printVersion()
 	case "init":
 

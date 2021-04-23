@@ -3,7 +3,7 @@
 # T R U S T A G E N T   I N S T A L L E R
 #
 # Overall process:
-# 1. Make sure the script is ready to be run (root user, dependencies installed, etc.).
+# 1. Make sure the script is ready to be run (root user, dependencies installed, etc.). And check for upgrade.
 # 2. Load trustagent.env if present and apply exports.
 # 3. Create tagent user
 # 4. Create directories, copy files and own them by tagent user.
@@ -92,6 +92,14 @@ echo "Starting trustagent installation from " $USER_PWD
 if [[ $EUID -ne 0 ]]; then
     echo_failure "This installer must be run as root"
     exit 1
+fi
+
+COMPONENT_NAME=$TRUSTAGENT_EXE
+# Upgrade if component is already installed
+if command -v $COMPONENT_NAME &>/dev/null; then
+  echo "$COMPONENT_NAME is installed, proceeding with the upgrade"
+  ./${COMPONENT_NAME}_upgrade.sh
+  exit $?
 fi
 
 # make sure tagent.service is not running or install won't work
@@ -319,7 +327,7 @@ cp $TRUSTAGENT_INIT_SERVICE $TRUSTAGENT_HOME
 
 # copy default and workload software manifest to /opt/trustagent/var/ (application-agent)
 if ! stat $TRUSTAGENT_VAR_DIR/manifest_* 1>/dev/null 2>&1; then
-    TA_VERSION=$(tagent version short)
+    TA_VERSION=$(tagent --version short)
     UUID=$(uuidgen)
     cp manifest_tpm20.xml $TRUSTAGENT_VAR_DIR/manifest_"$UUID".xml
     sed -i "s/Uuid=\"\"/Uuid=\"${UUID}\"/g" $TRUSTAGENT_VAR_DIR/manifest_"$UUID".xml

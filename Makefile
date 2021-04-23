@@ -5,6 +5,9 @@ GITBRANCH := $(CI_COMMIT_BRANCH)
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%SZ)
 VERSION := $(or ${GITTAG}, v1.0.0)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
+MONOREPO_GITURL := "ssh://git@gitlab.devtools.intel.com:29418/sst/isecl/intel-secl.git"
+#TODO use the latest tag
+MONOREPO_GITBRANCH := "v3.6/develop"
 
 # TODO:  Update make file to support debug/release builds (release build to use secure gcflags)
 # -fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv -fPIE -fPIC -fstack-protector-strong -O2 -D
@@ -36,7 +39,14 @@ installer: gta
 
 	cd tboot-xm && $(MAKE) package
 	cp tboot-xm/out/application-agent*.bin out/installer/
-	
+
+	git archive --remote=$(MONOREPO_GITURL) $(MONOREPO_GITBRANCH) pkg/lib/common/upgrades/ | tar xvf -
+	cp -a pkg/lib/common/upgrades/* out/installer/
+	rm -rf pkg/
+	cp -a upgrades/* out/installer/
+	mv out/installer/build/* out/installer/
+	chmod +x out/installer/*.sh
+
 	cp out/tagent out/installer/tagent
 	makeself out/installer out/trustagent-$(VERSION).bin "TrustAgent $(VERSION)" ./install.sh
 
