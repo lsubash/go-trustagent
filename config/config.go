@@ -184,27 +184,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	}
 
 	//---------------------------------------------------------------------------------------------
-	// TRUSTAGENT_LOG_LEVEL
-	//---------------------------------------------------------------------------------------------
-	ll, err := context.GetenvString("TRUSTAGENT_LOG_LEVEL", "Logging Level")
-	if err == nil {
-		llp, err := logrus.ParseLevel(ll)
-		if err == nil {
-			cfg.Logging.LogLevel = llp.String()
-			fmt.Printf("Log level set %s\n", ll)
-			dirty = true
-		}
-	} else {
-		fmt.Println("There was an error retreiving the log level from TRUSTAGENT_LOG_LEVEL")
-	}
-
-	if cfg.Logging.LogLevel == "" {
-		fmt.Println("TRUSTAGENT_LOG_LEVEL not defined, using default log level: Info")
-		cfg.Logging.LogLevel = logrus.InfoLevel.String()
-		dirty = true
-	}
-
-	//---------------------------------------------------------------------------------------------
 	// CMS_TLS_CERT_SHA384
 	//---------------------------------------------------------------------------------------------
 	environmentVariable, err = context.GetenvString(constants.EnvCMSTLSCertDigest, "CMS TLS SHA384 Digest")
