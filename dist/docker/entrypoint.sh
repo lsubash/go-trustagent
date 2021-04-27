@@ -41,13 +41,16 @@ if [ ! -f $CONFIG_DIR/.setup_done ]; then
 fi
 
 if [ ! -z "$SETUP_TASK" ]; then
+  cp $CONFIG_DIR/config.yml /tmp/config.yml
   IFS=',' read -ra ADDR <<< "$SETUP_TASK"
   for task in "${ADDR[@]}"; do
     tagent setup $task --force
     if [ $? -ne 0 ]; then
+      cp /tmp/config.yml $CONFIG_DIR/config.yml
       exit 1
     fi
   done
+  rm -rf /tmp/config.yml
 fi
 
 tagent init
