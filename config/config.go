@@ -263,8 +263,8 @@ func (cfg *TrustAgentConfiguration) LogConfiguration(stdOut bool) {
 
 	// creating the log file if not preset
 	var ioWriterDefault io.Writer
-	defaultLogFile, _ := os.OpenFile(constants.DefaultLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0660)
-	secLogFile, _ := os.OpenFile(constants.SecurityLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0660)
+	defaultLogFile, _ := os.OpenFile(constants.DefaultLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	secLogFile, _ := os.OpenFile(constants.SecurityLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 
 	ioWriterDefault = defaultLogFile
 	if stdOut {

@@ -344,6 +344,9 @@ chown -R $TRUSTAGENT_USERNAME:$TRUSTAGENT_USERNAME $TRUSTAGENT_HOME
 chown -R $TRUSTAGENT_USERNAME:$TRUSTAGENT_USERNAME $TRUSTAGENT_LOG_DIR
 chmod 755 $TRUSTAGENT_BIN/*
 
+# log file permission change
+chmod 740 $TRUSTAGENT_LOG_DIR
+
 # make sure /tmp is writable -- this is needed when the 'trustagent/v2/application-measurement' endpoint
 # calls /opt/tbootxm/bin/measure.
 # TODO:  Resolve this in lib-workload-measure (hard coded path)
