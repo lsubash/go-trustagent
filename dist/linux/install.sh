@@ -72,9 +72,6 @@ export TRUSTAGENT_HOME=${TRUSTAGENT_HOME:-$DEFAULT_TRUSTAGENT_HOME}
 
 TRUSTAGENT_EXE=tagent
 TRUSTAGENT_ENV_FILE=trustagent.env
-TRUSTAGENT_MODULE_ANALYSIS_SH=module_analysis.sh
-TRUSTAGENT_MODULE_ANALYSIS_DA_SH=module_analysis_da.sh
-TRUSTAGENT_MODULE_ANALYSIS_DA_TCG_SH=module_analysis_da_tcg.sh
 TRUSTAGENT_SERVICE=tagent.service
 TRUSTAGENT_INIT_SERVICE=tagent_init.service
 TRUSTAGENT_BIN_DIR=$TRUSTAGENT_HOME/bin
@@ -99,30 +96,6 @@ systemctl status $TRUSTAGENT_SERVICE 2>&1 >/dev/null
 if [ $? -eq 0 ]; then
     echo_failure "Please stop the tagent service before running the installer"
     exit 1
-fi
-
-# if secure efi is not enabled, require tboot has been installed.  Note: This must
-# be done manually until RHEL 8.3 (a manual patch is required).
-bootctl status 2> /dev/null | grep 'Secure Boot: disabled' > /dev/null
-if [ $? -eq 0 ]; then
-    SUEFI_ENABLED="false"
-    
-    rpm -qa | grep ${TBOOT_DEPENDENCY} >/dev/null
-    if [ $? -ne 0 ]; then
-      echo_failure "tboot must be installed on non SUEFI systems."
-      exit 1
-    fi
-fi
-
-# if suefi is enabled, tboot should not be installed
-# exit with error when such scenario is detected
-bootctl status 2> /dev/null | grep 'Secure Boot: enabled' > /dev/null
-if [ $? -eq 0 ]; then
-  rpm -qa | grep ${TBOOT_DEPENDENCY} >/dev/null
-  if [ $? -eq 0 ]; then
-    echo_failure "tagent cannot be installed on a system with both tboot and secure-boot enabled"
-    exit 1
-  fi
 fi
 
 install_packages() {
@@ -304,11 +277,6 @@ mkdir -p $TRUSTAGENT_CFG_DIR/jwt
 
 # copy 'tagent' to bin dir
 cp $TRUSTAGENT_EXE $TRUSTAGENT_BIN_DIR/
-
-# copy module analysis scripts to bin dier
-cp $TRUSTAGENT_MODULE_ANALYSIS_SH $TRUSTAGENT_BIN_DIR/
-cp $TRUSTAGENT_MODULE_ANALYSIS_DA_SH $TRUSTAGENT_BIN_DIR/
-cp $TRUSTAGENT_MODULE_ANALYSIS_DA_TCG_SH $TRUSTAGENT_BIN_DIR/
 
 # make a link in /usr/bin to tagent...
 ln -sfT $TRUSTAGENT_BIN_DIR/$TRUSTAGENT_EXE /usr/bin/$TRUSTAGENT_EXE
