@@ -184,27 +184,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	}
 
 	//---------------------------------------------------------------------------------------------
-	// TRUSTAGENT_LOG_LEVEL
-	//---------------------------------------------------------------------------------------------
-	ll, err := context.GetenvString("TRUSTAGENT_LOG_LEVEL", "Logging Level")
-	if err == nil {
-		llp, err := logrus.ParseLevel(ll)
-		if err == nil {
-			cfg.Logging.LogLevel = llp.String()
-			fmt.Printf("Log level set %s\n", ll)
-			dirty = true
-		}
-	} else {
-		fmt.Println("There was an error retreiving the log level from TRUSTAGENT_LOG_LEVEL")
-	}
-
-	if cfg.Logging.LogLevel == "" {
-		fmt.Println("TRUSTAGENT_LOG_LEVEL not defined, using default log level: Info")
-		cfg.Logging.LogLevel = logrus.InfoLevel.String()
-		dirty = true
-	}
-
-	//---------------------------------------------------------------------------------------------
 	// CMS_TLS_CERT_SHA384
 	//---------------------------------------------------------------------------------------------
 	environmentVariable, err = context.GetenvString(constants.EnvCMSTLSCertDigest, "CMS TLS SHA384 Digest")
@@ -284,8 +263,18 @@ func (cfg *TrustAgentConfiguration) LogConfiguration(stdOut bool) {
 
 	// creating the log file if not preset
 	var ioWriterDefault io.Writer
-	defaultLogFile, _ := os.OpenFile(constants.DefaultLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0660)
-	secLogFile, _ := os.OpenFile(constants.SecurityLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0660)
+	var err error = nil
+	defaultLogFile, _ := os.OpenFile(constants.DefaultLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	err = os.Chmod(constants.DefaultLogFilePath, 0640)
+	if err != nil {
+		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", defaultLogFile)
+	}
+
+	secLogFile, _ := os.OpenFile(constants.SecurityLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	err = os.Chmod(constants.SecurityLogFilePath, 0640)
+	if err != nil {
+		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", secLogFile)
+	}
 
 	ioWriterDefault = defaultLogFile
 	if stdOut {

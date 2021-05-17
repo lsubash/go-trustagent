@@ -326,8 +326,8 @@ The following sections are provided as a reference of GTA.
 |`tagent status`|Retrieves information about the trust-agent service/http host similar to `systemctl status tagent`.||
 |`tagent stop`|Stops the trust-agent service/http host similar to `systemctl stop tagent`.||
 |`tagent restart`|Restarts the trust-agent service/http host similar to `systemctl restart tagent`.||
-|`tagent version`|Prints version information to stdout.  Ex. "```tagent v1.0.0-da14377 [2019-11-22T10:37:52-08:00]```".||
-|`tagent version short`|Prints 'short' (major/minor) version information to stdout (to support the creation of application-integrity manifest files.) Ex. "```1.0```".||
+|`tagent --version`|Prints version information to stdout.  Ex. "```tagent v1.0.0-da14377 [2019-11-22T10:37:52-08:00]```".||
+|`tagent --version short`|Prints 'short' (major/minor) version information to stdout (to support the creation of application-integrity manifest files.) Ex. "```1.0```".||
 |`tagent uninstall`|Uninstalls the trust-agent.  [See Uninstall](#uninstall)||
 
 ## trustagent.env Reference

@@ -58,9 +58,9 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 		if err == nil {
 			(*task.cfg).Logging.LogLevel = llp.String()
 			fmt.Printf("Log level set %s\n", ll)
+		} else {
+			fmt.Println("There was an error retrieving the log level from ", constants.EnvTALogLevel)
 		}
-	} else {
-		fmt.Println("There was an error retreiving the log level from ", constants.EnvTALogLevel)
 	}
 
 	if (*task.cfg).Logging.LogLevel == "" {
@@ -76,7 +76,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 	if err == nil && logEnableStdout != "" {
 		(*task.cfg).Logging.LogEnableStdout, err = strconv.ParseBool(logEnableStdout)
 		if err != nil {
-			fmt.Println("Error while parsing the variable TA_ENABLE_CONSOLE_LOG, setting to default value false")
+			fmt.Println("Error while parsing the variable, ", constants.EnvTALogEnableConsoleLog, " setting to default value false")
 		}
 	}
 

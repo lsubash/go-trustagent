@@ -131,7 +131,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		trustAgentPort: cfg.WebService.Port,
 	}
 
-	UpdateServiceConfigTask := &UpdateServiceConfig{
+	updateServiceConfigTask := &UpdateServiceConfig{
 		cfg: &cfg,
 	}
 
@@ -153,8 +153,8 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		runner.Tasks = append(runner.Tasks, getConfiguredManifestTask)
 
 	case DefaultSetupCommand:
-		runner.Tasks = append(runner.Tasks, []setup.Task{downloadRootCACertTask, downloadTLSCertTask,
-			downloadPrivacyCATask, takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask, UpdateServiceConfigTask}...)
+		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadTLSCertTask,
+			downloadPrivacyCATask, takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
 
 	case DownloadRootCACertCommand:
 		runner.Tasks = append(runner.Tasks, downloadRootCACertTask)
@@ -175,7 +175,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		runner.Tasks = append(runner.Tasks, provisionPrimaryKeyTask)
 
 	case UpdateServiceConfigCommand:
-		runner.Tasks = append(runner.Tasks, UpdateServiceConfigTask)
+		runner.Tasks = append(runner.Tasks, updateServiceConfigTask)
 
 	default:
 		return nil, errors.New("Invalid setup command")
