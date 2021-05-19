@@ -238,8 +238,7 @@ char *tokenizeString(char *line, char *delim) {
 
 int walkDirRecurse(const char *dir_path, const char *include, const char *exclude, regex_t *reginc, regex_t *regexc, FILE *fd, int spec) {
 
-    DIR *dir;
-    struct dirent *entry;
+    struct dirent **entries;
     struct stat statbuf;
 
     int flag;
@@ -255,24 +254,28 @@ int walkDirRecurse(const char *dir_path, const char *include, const char *exclud
     strcpy_s(file_path, FILENAME_MAX, dir_path);
     file_path[len++] = '/';
 
-    if(!(dir = opendir(dir_path))) {
-        log_error("Cannot open directory: %s", dir_path);
+    int n = scandir(dir_path, &entries, NULL, alphasort);
+    if (n == -1) {
+        log_error("Cannot scan directory: %s", dir_path);
         return -1;
     }
 
-    while((entry = readdir(dir))) {
+    // ignore . and ..
+    int i = 2;
+    free(entries[0]);
+    free(entries[1]);
 
-        strcpy_s(file_path + len, FILENAME_MAX - len, entry->d_name);
+    while(i < n) {
+        strcpy_s(file_name, sizeof(file_name), entries[i]->d_name);
+        free(entries[i++]);
+
+        strcpy_s(file_path + len, FILENAME_MAX - len, file_name);
         if (lstat(file_path, &statbuf) == -1) {
             log_warn("Not a valid path - %s", file_path);
             continue;
         }
 
         if(S_ISDIR(statbuf.st_mode)) {
-            // Found a directory, but ignore . and ..
-            if(!strcmp(".", entry->d_name) || !strcmp("..", entry->d_name))
-                continue;
-
             // Recurse at a new directory level
             walkDirRecurse(file_path, include, exclude, reginc, regexc, fd, spec);
 
@@ -284,10 +287,7 @@ int walkDirRecurse(const char *dir_path, const char *include, const char *exclud
         else if (S_ISLNK(statbuf.st_mode) && !(spec & WS_LINK))
             continue;
 
-        if ((spec & WS_FILES) && (spec & WS_LINK)) {
-            strcpy_s(file_name, sizeof(file_name), entry->d_name);
-        }
-        else {
+        if (spec != (WS_FILES|WS_LINK)) {
             strcpy_s(file_name, sizeof(file_name), file_path + strnlen_s(fs_mount_path, sizeof(fs_mount_path)));
         }
 
@@ -300,7 +300,7 @@ int walkDirRecurse(const char *dir_path, const char *include, const char *exclud
             }
         }
     }
-    closedir(dir);
+    free(entries);
 
     return 0;
 }
