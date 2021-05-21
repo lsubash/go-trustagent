@@ -41,10 +41,9 @@ installer: gta
 	cd tboot-xm && $(MAKE) package
 	cp tboot-xm/out/application-agent*.bin out/installer/
 
-	tmpdir=$(mktemp)
-	git clone --depth 1 -b $(MONOREPO_GITBRANCH) $(MONOREPO_GITURL) $tmpdir
-	cp -a $tmpdir/pkg/lib/common/upgrades/* out/installer/
-	rm -rf $tmpdir
+	git clone --depth 1 -b $(MONOREPO_GITBRANCH) $(MONOREPO_GITURL) monorepo_tmp
+	cp -a monorepo_tmp/pkg/lib/common/upgrades/* out/installer/
+	rm -rf monorepo_tmp
 	cp -a upgrades/* out/installer/
 	mv out/installer/build/* out/installer/
 	chmod +x out/installer/*.sh
