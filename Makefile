@@ -6,7 +6,7 @@ GITBRANCH := $(CI_COMMIT_BRANCH)
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%SZ)
 VERSION := $(or ${GITTAG}, v1.0.0)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
-MONOREPO_GITURL := "ssh://git@gitlab.devtools.intel.com:29418/sst/isecl/intel-secl.git"
+	MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl.git"
 #TODO use the latest tag
 MONOREPO_GITBRANCH := "v3.6/develop"
 
