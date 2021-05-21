@@ -8,7 +8,7 @@ VERSION := $(or ${GITTAG}, v1.0.0)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
 	MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl.git"
 #TODO use the latest tag
-MONOREPO_GITBRANCH := "v3.6/develop"
+MONOREPO_GITBRANCH := "v3.6.0"
 
 # TODO:  Update make file to support debug/release builds (release build to use secure gcflags)
 # -fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv -fPIE -fPIC -fstack-protector-strong -O2 -D
@@ -41,9 +41,10 @@ installer: gta
 	cd tboot-xm && $(MAKE) package
 	cp tboot-xm/out/application-agent*.bin out/installer/
 
-	git archive --remote=$(MONOREPO_GITURL) $(MONOREPO_GITBRANCH) pkg/lib/common/upgrades/ | tar xvf -
-	cp -a pkg/lib/common/upgrades/* out/installer/
-	rm -rf pkg/
+	tmpdir=$(mktemp)
+	git clone --depth 1 -b $(MONOREPO_GITBRANCH) $(MONOREPO_GITURL) $tmpdir
+	cp -a $tmpdir/pkg/lib/common/upgrades/* out/installer/
+	rm -rf $tmpdir
 	cp -a upgrades/* out/installer/
 	mv out/installer/build/* out/installer/
 	chmod +x out/installer/*.sh
