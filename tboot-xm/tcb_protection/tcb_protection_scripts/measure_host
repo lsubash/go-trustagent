@@ -91,19 +91,6 @@ case "$1" in
 esac
 
 
-#LOADING - RPMMIO DRIVERS
-#load_rpmmio_drivers()
-#{
-#	log "RPMMIO Driver Load - STARTED"
-#
-#	log "Load our own rpmmio driver, and create device rpmmio0, for direct TPM access"
-#	insmod /lib/modules/`uname -r`/kernel/drivers/char/tpm/rpmmio.ko
-#	major=$(awk '$2 == "rpmmio" {print $1}' /proc/devices)
-#	mknod /dev/rpmmio0 c $major 0
-#	chmod 777 /dev/rpmmio0
-#	log "RPMMIO Driver Load - COMPLETE"
-#}
-
 #MOUNT / IN /TMP/ROOT
 mount_root()
 {
@@ -219,7 +206,6 @@ manifest_verify()
 		log "measurement file : $measurement_file"
 	
 		#Run the Measure and the check for its results
-		#/bin/verifier $tmp_root/$manifest_path $tmp_root/ HOST >> $INITRD_LOG_FILE 2>&1
 		log "/bin/measure \"$manifest_xml\" \"$tmp_root\"/ 2>> $tmp_root/var/log/wml/measure.log > \"$measurement_file\""
 		/bin/measure "$manifest_xml" "$tmp_root"/ 2>> $tmp_root/var/log/wml/measure.log > "$measurement_file"
 		if [ $? -ne 0 ]; then
@@ -310,10 +296,7 @@ tpm_extend()
 	return 0
 }
 
-#Step 1 - Load the RPMMIO Drivers
-#load_rpmmio_drivers
-
-#Step 2 - Mount /
+#Step 1 - Mount /
 mount_root
 
 tcb_log_file=$tmp_root/var/log/tcb.log
@@ -326,19 +309,19 @@ load_configuration
 if [ $? -eq 0 ]
 then
 
-	#Step 3 - Mount Other Partitions
+	#Step 2 - Mount Other Partitions
 	mount_partitions
 
-	#Step 4 - Measurement - Verifier
+	#Step 3 - Measurement - Verifier
 	manifest_verify
 
 	if [ $? -eq 0 ]
 	then
-		#Step 5 - Extend PCR 15 using TPM Extend
+		#Step 4 - Extend PCR 15 using TPM Extend
 		tpm_extend
 		if [ $? -eq 0 ]
 		then
-			#Step 6 - Unmount all the Partitions that were mounted in the process
+			#Step 5 - Unmount all the Partitions that were mounted in the process
 			unmount_partitions
 		fi
 	fi

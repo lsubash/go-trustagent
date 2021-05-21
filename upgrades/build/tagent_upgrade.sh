@@ -42,4 +42,7 @@ sed -i "s/Label=\"ISecL_Default_Workload_Flavor_v\"/Label=\"ISecL_Default_Worklo
 # file ownership/permissions
 chown -R $TRUSTAGENT_USERNAME:$TRUSTAGENT_USERNAME $TRUSTAGENT_VAR_DIR
 
+echo "Proceeding with upgrade of application agent"
+./tbootxm_upgrade.sh -s $SERVICE_NAME -b $BACKUP_PATH |& tee -a $LOG_FILE
+
 echo "TA upgrade completed"

@@ -13,8 +13,8 @@
 #    Otherwise, exit with a message that the user must provision the trust agent and start the
 #    service.
 #--------------------------------------------------------------------------------------------------
-# TERM_DISPLAY_MODE can be "plain" or "color"
 
+# TERM_DISPLAY_MODE can be "plain" or "color"
 TERM_DISPLAY_MODE=color
 TERM_COLOR_GREEN="\\033[1;32m"
 TERM_COLOR_CYAN="\\033[1;36m"
@@ -55,6 +55,10 @@ echo_warning() {
   return 1
 }
 
+# Environment:
+# - TERM_DISPLAY_MODE
+# - TERM_DISPLAY_CYAN
+# - TERM_DISPLAY_NORMAL
 echo_info() {
   if [ "$TERM_DISPLAY_MODE" = "color" ]; then echo -en "${TERM_COLOR_CYAN}"; fi
   echo ${@:-"[INFO]"}

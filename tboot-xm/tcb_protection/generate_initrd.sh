@@ -53,10 +53,8 @@ change_permissions() {
     	chmod 755 $INITRAMFS_SCRIPTS_DIR/local-premount/measure_host
     	dos2unix $INITRAMFS_SCRIPTS_DIR/local-premount/measure_host
 	
-	#chmod 755 $TBOOTXM_BIN/verifier
 	chmod 755 $TBOOTXM_BIN/measure
 	chmod 700 $TBOOTXM_BIN/tpmextend
-	#chmod 755 $TBOOTXM_LIB/rpmmio.ko
 	chmod 755 $TBOOTXM_LIB/libwml.so
 }
 
@@ -94,16 +92,6 @@ function check_prerequisites()
         exit 1
     fi
 
-
-    #Check for RPMMIO Driver
-    #if [ ! -e "$TBOOTXM_LIB/rpmmio.ko" ]; then
-    #    echo "RPMMIO.ko File Not Found"
-    #   	if [ $os_flavour == "ubuntu" ]
-    #    then
-    #        restore_config
-    #    fi 
-    #    exit 1
-    #fi
     #Check for WML Library
     if [ ! -e "$TBOOTXM_LIB/libwml.so" ]; then
         echo "libwml.so File Not Found"
@@ -114,17 +102,6 @@ function check_prerequisites()
         exit 1
     fi
 
-
-
-    #Check for Verifier
-    #if [ ! -e "$TBOOTXM_BIN/verifier" ]; then
-    #    echo "Verifier File Not Found"
-    #    if [ $os_flavour == "ubuntu" ]
-    #    then
-    #        restore_config
-    #    fi
-    #	exit 1
-    #fi
     #Check for Measure
     if [ ! -e "$TBOOTXM_BIN/measure" ]; then
         echo "Measure File Not Found"
@@ -415,7 +392,6 @@ function generate_initrd_centos()
 
 function revert_mkinitrd()
 {
-	#rm -rf /bin/verifier /bin/tpmextend /bin/rpmmio.ko
 	rm -rf /bin/measure /bin/tpmextend /lib/libwml.so
 	rm -rf /lib/mkinitrd/scripts/boot-measure_host.sh
 	rm -rf /lib/mkinitrd/scripts/setup-measure_host.sh
@@ -431,13 +407,10 @@ function prepare_mkinitrd()
 	chmod +x /lib/mkinitrd/scripts/setup-measure_host.sh
 	dos2unix /lib/mkinitrd/scripts/setup-measure_host.sh
         # copy the binaries to location
-	#cp $TBOOTXM_BIN/verifier /bin/.
 	cp  $TBOOTXM_BIN/measure /bin/.
 	cp  $TBOOTXM_BIN/tpmextend /bin/.
-	#cp  $TBOOTXM_LIB/rpmmio.ko /bin/.
 	cp  $TBOOTXM_LIB/libwml.so /lib/.
 	chmod +x /bin/measure /bin/tpmextend /lib/libwml.so
-	#chmod +x /bin/verifier /bin/tpmextend /bin/rpmmio.ko
 }
 
 function generate_initrd_suse()
