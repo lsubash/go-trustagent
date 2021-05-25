@@ -117,7 +117,7 @@ function remove_grub_entry()
 		then
 			rm "$ENTRY"
 		else
-			echo_failure "Could not locate 'TCB-Protection' entry in /boot/loader/entries"
+			echo_failure "Could not locate $MENUENTRY_PREFIX entry in /boot/loader/entries"
 		fi
 	elif [ `grep -c "$MENUENTRY_PREFIX" $GRUB_ENTRY_FILE` -gt 0 ]
 	then
@@ -127,14 +127,12 @@ function remove_grub_entry()
 		if [ $? -ne 0 ]
 		then
 			echo_failure "Uninstaller failed to remove $MENUENTRY_PREFIX grub entry"
-			echo "will exit"
-			exit 1
+			echo "Please remove entry manually"
 		else
-			echo "Successfully removed the $MENUENTRY_PREFIX grub entry from file $GURB_ENTRY_FILE"
+			echo_success "Successfully removed the $MENUENTRY_PREFIX grub entry from file $GURB_ENTRY_FILE"
 		fi
 	else
-		echo "$MENUENTRY_PREFIX entry not found in file $GRUB_ENTRY_FILE"
-		exit 1
+		echo_warning "$MENUENTRY_PREFIX entry not found in file $GRUB_ENTRY_FILE"
 	fi
 }
 
@@ -147,23 +145,25 @@ function update_grub_entry()
 		if [ $os_version == "fedora" ] || [ $os_version == "rhel" ]; then
 			ERROR_LOG_FILE=/tmp/grubupdate.err
 			$GRUB_UPDATE 2>$ERROR_LOG_FILE
-			exit_status=$?
-			check_error "$exit_status" grub2-mkconfig "$ERROR_LOG_FILE"
+			if [ $? -ne 0 ]
+			then
+			  echo_warning "Error updating grub file, check $ERROR_LOG_FILE file for details"
+			fi
 		else
 			update-grub
 		fi
 	fi
 }
 
-#remove the ISL initrd
+#remove the ISecL initrd
 function remove_initrd()
 {
 	rm /boot/${INITRD_NAME}
 	if [ $? -eq 0 ]
 	then
-		echo "successfully removed CIT initrd"
+		echo "successfully removed ISecL initrd"
 	else
-		echo_warning "seems like ISL initrd is not present for current kernel version"
+		echo_warning "seems like ISecL initrd is not present for current kernel version"
 	fi
 }
 
@@ -188,9 +188,9 @@ function remove_library_path()
     fi
 	if [ $? -eq 0 ]
 	then
-		echo "Successfully removed library path"
+		echo "Successfully removed WML path"
 	else
-		echo_warning "seems like library path is not set on the machine"
+		echo_warning "seems like WML path is not set on the machine"
 	fi
 }
 
@@ -201,28 +201,26 @@ function main()
 	then
 		GRUB_ENTRY_FILE="$GRUB_FILE"
 		GRUB_DEFAULT_FILE="$GRUB_FILE"
-		echo "removing grub entry from $GRUB_ENTRY_FILE"
 	elif [ $GRUB_VERSION -eq 1 ] || [ $GRUB_VERSION -eq 2 ]
 	then
 		GRUB_ENTRY_FILE="/etc/grub.d/40_custom"
 		GRUB_DEFAULT_FILE="/etc/default/grub"
 	fi
+	echo "removing grub entry from $GRUB_ENTRY_FILE"
 	remove_grub_entry
+	echo_warning "default grub entry will be changed to first entry in GRUB file"
 	if [ $GRUB_VERSION -eq 0 ]
 	then
 		sed -i s/default=[0-9]*/default=0/ $GRUB_DEFAULT_FILE
 	elif [ $GRUB_VERSION -eq 1 ] || [ $GRUB_VERSION -eq 2 ]
 	then
-		sed -i s/GRUB_DEFAULT=.*/GRUB_DEFAULT=0/ $GRUB_DEFAULT_FILE
+		sed -i s/^GRUB_DEFAULT=.*/GRUB_DEFAULT=0/ $GRUB_DEFAULT_FILE
 	fi
 	update_grub_entry
 	remove_initrd
 	remove_tbootxm_files
 	remove_library_path
 	echo_success "tboot-xm uninstall complete"
-	echo_warning "default grub entry will be changed to first entry in GRUB file"
-	
-	sed -i s/^GRUB_DEFAULT=.*/GRUB_DEFAULT=0/ $GRUB_DEFAULT_FILE
 }
 
 function help()

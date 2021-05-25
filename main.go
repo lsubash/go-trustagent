@@ -302,12 +302,12 @@ func uninstall() error {
 	fmt.Println("TrustAgent service removed successfully")
 
 	//
-	// uninstall tbootxml (if uninstall script is present)
+	// uninstall application agent (if uninstall script is present)
 	//
 	if _, err := os.Stat(constants.UninstallTbootXmScript); err == nil {
 		_, _, err = commonExec.RunCommandWithTimeout(constants.UninstallTbootXmScript, 15)
 		if err != nil {
-			return errors.Errorf("main:uninstall() An error occurred while uninstalling tboot: %s", err)
+			return errors.Errorf("main:uninstall() An error occurred while uninstalling application agent: %s", err)
 		}
 	}
 
