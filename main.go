@@ -17,6 +17,7 @@ import (
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/go-trust-agent/v4/eventlog"
 	"intel/isecl/go-trust-agent/v4/resource"
 	_ "intel/isecl/go-trust-agent/v4/swagger/docs"
 	"intel/isecl/go-trust-agent/v4/tasks"

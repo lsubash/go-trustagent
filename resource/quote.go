@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/host-connector/types"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/lib/tpmprovider/v4"
