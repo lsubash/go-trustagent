@@ -47,6 +47,40 @@ func getTpmQuote(requestHandler common.RequestHandler) endpointHandler {
 
 		}
 
+		if len(tpmQuoteRequest.Nonce) == 0 {
+			seclog.Errorf("resource/quote:getTpmQuote() %s - The TpmQuoteRequest does not contain a nonce", message.InvalidInputProtocolViolation)
+			return &endpointError{Message: "The TpmQuoteRequest does not contain a nonce", StatusCode: http.StatusBadRequest}
+		}
+
+		// ISECL-12121: strip inactive PCR Banks from the request
+		if(len(tpmQuoteRequest.PcrBanks) >0) {
+			for i, pcrBank := range tpmQuoteRequest.PcrBanks {
+				isActive, err := tpm.IsPcrBankActive(pcrBank)
+				if !isActive {
+					log.Infof("resource/quote:getQuote() %s PCR bank is inactive. Dropping from quote request. %s",
+						pcrBank, err.Error())
+					tpmQuoteRequest.PcrBanks = append(tpmQuoteRequest.PcrBanks[:i], tpmQuoteRequest.PcrBanks[i+1:]...)
+				} else if err != nil {
+					log.WithError(err).Errorf("resource/quote:getQuote() Error while determining PCR bank "+
+						"%s state: %s", pcrBank, err.Error())
+				}
+			}
+		} else {
+			// if PCR bank is nil in the TPM Quote request, return quote for all active PCR banks on the host
+			supportedPCRBanks := []string{"SHA384", "SHA256", "SHA1"}
+			for _, bank := range supportedPCRBanks {
+				isActive, err := tpm.IsPcrBankActive(bank)
+				if(isActive) {
+					tpmQuoteRequest.PcrBanks = append(tpmQuoteRequest.PcrBanks, bank)
+				} else if err != nil {
+					log.WithError(err).Errorf("resource/quote:getQuote() Error while determining PCR bank "+
+						"%s state: %s", bank, err.Error())
+				}
+			}
+		}
+
+
+		err = ctx.createTpmQuote(&tpmQuoteRequest)
 		tpmQuoteResponse, err := requestHandler.GetTpmQuote(&tpmQuoteRequest)
 		if err != nil {
 			log.WithError(err).Errorf("resource/quote:getTpmQuote() %s - There was an error collecting the tpm quote", message.AppRuntimeErr)
