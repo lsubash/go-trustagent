@@ -20,6 +20,7 @@ const (
 	EndorsementCertificateFile = ConfigDir + "endorsement-certificate.pem"
 	AikCert                    = ConfigDir + "aik.pem"
 	PrivacyCA                  = ConfigDir + "privacy-ca.cer"
+	NatsCredentials            = ConfigDir + "credentials/trust-agent.creds"
 	VarDir                     = InstallationDir + "var/"
 	RamfsDir                   = VarDir + "ramfs/"
 	SystemInfoDir              = VarDir + "system-info/"
@@ -61,6 +62,8 @@ const (
 	DefaultIdleTimeout         = 10 * time.Second
 	DefaultMaxHeaderBytes      = 1 << 20
 	AikSecretKeyFile           = ConfigDir + "aiksecretkey"
+	CommunicationModeHttp      = "http"
+	CommunicationModeOutbound  = "outbound"
 )
 
 // Env Variables
@@ -83,4 +86,7 @@ const (
 	EnvTAServerWriteTimeout      = "TA_SERVER_WRITE_TIMEOUT"
 	EnvTAServerIdleTimeout       = "TA_SERVER_IDLE_TIMEOUT"
 	EnvTAServerMaxHeaderBytes    = "TA_SERVER_MAX_HEADER_BYTES"
+	EnvTAServiceMode             = "TA_SERVICE_MODE"
+	EnvNATServers                = "NAT_SERVERS"
+	EnvTAHostId                  = "TA_HOST_ID"
 )

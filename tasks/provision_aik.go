@@ -121,7 +121,6 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 	// create an IdentityChallengeResponse to send back to HVS
 	identityChallengeResponse := taModel.IdentityChallengePayload{}
 
-	// KWT: refactor so that the call to get AIK info is done once
 	err = task.populateIdentityRequest(&identityChallengeResponse.IdentityRequest)
 	if err != nil {
 		return errors.Wrap(err, "Failed to populate the identity challenge response")

@@ -8,9 +8,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+
+	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
-	"intel/isecl/lib/tpmprovider/v4"
 	"io/ioutil"
 	stdlog "log"
 	"net/http"
@@ -53,11 +54,6 @@ type TrustAgentService struct {
 	router *mux.Router
 }
 
-type endpointError struct {
-	Message    string
-	StatusCode int
-}
-
 type privilegeError struct {
 	StatusCode int
 	Message    string
@@ -69,16 +65,10 @@ func (e privilegeError) Error() string {
 	return fmt.Sprintf("%d: %s", e.StatusCode, e.Message)
 }
 
-func (e endpointError) Error() string {
-	log.Trace("resource/service:Error() Entering")
-	defer log.Trace("resource/service:Error() Leaving")
-	return fmt.Sprintf("%d: %s", e.StatusCode, e.Message)
-}
-
 var cacheTime, _ = time.ParseDuration(constants.JWTCertsCacheTime)
 var seclog = commLog.GetSecurityLogger()
 
-func CreateTrustAgentService(config *config.TrustAgentConfiguration, tpmFactory tpmprovider.TpmFactory) (*TrustAgentService, error) {
+func NewTrustAgentHttpService(requestHandler common.RequestHandler, config *config.TrustAgentConfiguration) (*TrustAgentService, error) {
 	log.Trace("resource/service:CreateTrustAgentService() Entering")
 	defer log.Trace("resource/service:CreateTrustAgentService() Leaving")
 
@@ -97,17 +87,18 @@ func CreateTrustAgentService(config *config.TrustAgentConfiguration, tpmFactory 
 
 	noAuthRouter := trustAgentService.router.PathPrefix("/v2/").Subrouter()
 	noAuthRouter.HandleFunc("/version", errorHandler(getVersion())).Methods("GET")
+
+	// use permission-based access control for webservices
 	authRouter := trustAgentService.router.PathPrefix("/v2/").Subrouter()
 	authRouter.Use(middleware.NewTokenAuth(constants.TrustedJWTSigningCertsDir, constants.TrustedCaCertsDir, fnGetJwtCerts, cacheTime))
 
-	// use permission-based access control for webservices
-	authRouter.HandleFunc("/aik", errorHandler(requiresPermission(getAik(), []string{getAIKPerm}))).Methods("GET")
-	authRouter.HandleFunc("/host", errorHandler(requiresPermission(getPlatformInfo(), []string{getHostInfoPerm}))).Methods("GET")
-	authRouter.HandleFunc("/tpm/quote", errorHandler(requiresPermission(getTpmQuote(config, tpmFactory), []string{postQuotePerm}))).Methods("POST")
-	authRouter.HandleFunc("/binding-key-certificate", errorHandler(requiresPermission(getBindingKeyCertificate(), []string{getBindingKeyPerm}))).Methods("GET")
-	authRouter.HandleFunc("/tag", errorHandler(requiresPermission(setAssetTag(config, tpmFactory), []string{postDeployTagPerm}))).Methods("POST")
-	authRouter.HandleFunc("/host/application-measurement", errorHandler(requiresPermission(getApplicationMeasurement(), []string{postAppMeasurementPerm}))).Methods("POST")
-	authRouter.HandleFunc("/deploy/manifest", errorHandler(requiresPermission(deployManifest(), []string{postDeployManifestPerm}))).Methods("POST")
+	authRouter.HandleFunc("/aik", errorHandler(requiresPermission(getAik(requestHandler), []string{getAIKPerm}))).Methods("GET")
+	authRouter.HandleFunc("/host", errorHandler(requiresPermission(getPlatformInfo(requestHandler), []string{getHostInfoPerm}))).Methods("GET")
+	authRouter.HandleFunc("/tpm/quote", errorHandler(requiresPermission(getTpmQuote(requestHandler), []string{postQuotePerm}))).Methods("POST")
+	authRouter.HandleFunc("/binding-key-certificate", errorHandler(requiresPermission(getBindingKeyCertificate(requestHandler), []string{getBindingKeyPerm}))).Methods("GET")
+	authRouter.HandleFunc("/tag", errorHandler(requiresPermission(setAssetTag(requestHandler), []string{postDeployTagPerm}))).Methods("POST")
+	authRouter.HandleFunc("/host/application-measurement", errorHandler(requiresPermission(getApplicationMeasurement(requestHandler), []string{postAppMeasurementPerm}))).Methods("POST")
+	authRouter.HandleFunc("/deploy/manifest", errorHandler(requiresPermission(deployManifest(requestHandler), []string{postDeployManifestPerm}))).Methods("POST")
 
 	return &trustAgentService, nil
 }
@@ -230,7 +221,7 @@ func errorHandler(eh endpointHandler) http.HandlerFunc {
 				return
 			}
 			switch t := err.(type) {
-			case *endpointError:
+			case *common.EndpointError:
 				http.Error(w, t.Message, t.StatusCode)
 			case privilegeError:
 				http.Error(w, t.Message, t.StatusCode)

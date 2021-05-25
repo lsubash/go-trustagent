@@ -15,15 +15,16 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
+	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/go-trust-agent/v4/eventlog"
+	"intel/isecl/go-trust-agent/v4/outbound"
 	"intel/isecl/go-trust-agent/v4/resource"
 	_ "intel/isecl/go-trust-agent/v4/swagger/docs"
 	"intel/isecl/go-trust-agent/v4/tasks"
 	"intel/isecl/go-trust-agent/v4/util"
 	"intel/isecl/lib/platform-info/v4/platforminfo"
-	"intel/isecl/lib/tpmprovider/v4"
 	"os"
 	"os/exec"
 	"os/user"
@@ -459,22 +460,38 @@ func main() {
 			os.Exit(1)
 		}
 
-		tpmFactory, err := tpmprovider.NewTpmFactory()
-		if err != nil {
-			log.Errorf("main:main() Could not create the tpm factory %+v", err)
-			os.Exit(1)
-		}
+		requestHandler := common.NewRequestHandler(cfg)
 
-		// create and start webservice
-		service, err := resource.CreateTrustAgentService(cfg, tpmFactory)
-		if err != nil {
-			log.Errorf("main:main() Error while creating trustagent service %+v", err)
-			os.Exit(1)
-		}
+		if strings.ToLower(cfg.Mode) == constants.CommunicationModeOutbound {
 
-		err = service.Start()
-		if err != nil {
-			log.Errorf("main:main() Error while starting trustagent service %+v", err)
+			subscriber, err := outbound.NewHVSSubscriber(requestHandler, cfg)
+			if err != nil {
+				log.Errorf("Error creating the HVS subscriber: %+v", err)
+			}
+
+			err = subscriber.Start()
+			if err != nil {
+				log.Errorf("main:main() Error while starting nats client: %+v", err)
+				os.Exit(1)
+			}
+
+		} else if cfg.Mode == "" || strings.ToLower(cfg.Mode) == constants.CommunicationModeHttp {
+
+			// create and start webservice
+			service, err := resource.NewTrustAgentHttpService(requestHandler, cfg)
+			if err != nil {
+				log.Errorf("main:main() Error while creating trustagent service %+v", err)
+				os.Exit(1)
+			}
+
+			err = service.Start()
+			if err != nil {
+				log.Errorf("main:main() Error while starting trustagent service %+v", err)
+				os.Exit(1)
+			}
+
+		} else {
+			log.Errorf("Unknown communication mode %s", cfg.Mode)
 			os.Exit(1)
 		}
 

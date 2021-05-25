@@ -153,8 +153,14 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		runner.Tasks = append(runner.Tasks, getConfiguredManifestTask)
 
 	case DefaultSetupCommand:
-		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadTLSCertTask,
-			downloadPrivacyCATask, takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
+		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadPrivacyCATask,
+			takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
+		if cfg.Mode == constants.CommunicationModeOutbound {
+			//TODO: Add task
+			//runner.Tasks = append(runner.Tasks, downloadCredentials)
+		} else {
+			runner.Tasks = append(runner.Tasks, downloadTLSCertTask)
+		}
 
 	case DownloadRootCACertCommand:
 		runner.Tasks = append(runner.Tasks, downloadRootCACertTask)

@@ -33,6 +33,7 @@ const (
 
 type TrustAgentConfiguration struct {
 	configFile string
+	Mode       string
 	Logging    struct {
 		LogLevel          string // TRUSTAGENT_LOG_LEVEL
 		LogEnableStdout   bool   // TA_ENABLE_CONSOLE_LOG
@@ -63,6 +64,10 @@ type TrustAgentConfiguration struct {
 	TLS struct {
 		CertSAN string // SAN_LIST
 		CertCN  string // TA_TLS_CERT_CN
+	}
+	Nats struct {
+		Servers []string
+		HostID  string
 	}
 }
 
@@ -184,6 +189,28 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	}
 
 	//---------------------------------------------------------------------------------------------
+
+	// TRUSTAGENT_LOG_LEVEL
+	//---------------------------------------------------------------------------------------------
+	ll, err := context.GetenvString("TRUSTAGENT_LOG_LEVEL", "Logging Level")
+	if err == nil {
+		llp, err := logrus.ParseLevel(ll)
+		if err == nil {
+			cfg.Logging.LogLevel = llp.String()
+			fmt.Printf("Log level set %s\n", ll)
+			dirty = true
+		}
+	} else {
+		fmt.Println("There was an error retrieving the log level from TRUSTAGENT_LOG_LEVEL")
+	}
+
+	if cfg.Logging.LogLevel == "" {
+		fmt.Println("TRUSTAGENT_LOG_LEVEL not defined, using default log level: Info")
+		cfg.Logging.LogLevel = logrus.InfoLevel.String()
+		dirty = true
+	}
+
+	//---------------------------------------------------------------------------------------------
 	// CMS_TLS_CERT_SHA384
 	//---------------------------------------------------------------------------------------------
 	environmentVariable, err = context.GetenvString(constants.EnvCMSTLSCertDigest, "CMS TLS SHA384 Digest")
@@ -222,6 +249,37 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	} else if strings.TrimSpace(cfg.TLS.CertSAN) == "" {
 		fmt.Printf("SAN_LIST not defined, using default value %s\n", constants.DefaultTaTlsSan)
 		cfg.TLS.CertSAN = constants.DefaultTaTlsSan
+	}
+
+	//---------------------------------------------------------------------------------------------
+	// TA_SERVICE_MODE
+	//---------------------------------------------------------------------------------------------
+	environmentVariable, err = context.GetenvString(constants.EnvTAServiceMode, "Trustagent Service Mode")
+	if err == nil && environmentVariable != "" &&
+		(environmentVariable == constants.CommunicationModeHttp || environmentVariable == constants.CommunicationModeOutbound) {
+		cfg.Mode = environmentVariable
+		dirty = true
+	} else {
+		fmt.Printf("Invalid TA_SERVICE_MODE, using default value %s\n", constants.CommunicationModeHttp)
+		cfg.Mode = constants.CommunicationModeHttp
+	}
+
+	//---------------------------------------------------------------------------------------------
+	// NAT_SERVERS
+	//---------------------------------------------------------------------------------------------
+	environmentVariable, err = context.GetenvString(constants.EnvNATServers, "NAT servers")
+	if err == nil && environmentVariable != "" {
+		cfg.Nats.Servers = strings.Split(environmentVariable, ",")
+		dirty = true
+	}
+
+	//---------------------------------------------------------------------------------------------
+	// TA_HOST_ID
+	//---------------------------------------------------------------------------------------------
+	environmentVariable, err = context.GetenvString(constants.EnvTAHostId, "Trustagent Host Id")
+	if err == nil && environmentVariable != "" {
+		cfg.Nats.HostID = environmentVariable
+		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
