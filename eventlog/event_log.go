@@ -5,7 +5,7 @@
 package eventlog
 
 import (
-	commLog "intel/isecl/lib/common/v3/log"
+	commLog "intel/isecl/lib/common/v4/log"
 )
 
 // PcrEventLog structure is used to hold complete events log info

@@ -6,12 +6,12 @@ package resource
 
 import (
 	"bytes"
-	"intel/isecl/go-trust-agent/v3/constants"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"io/ioutil"
 	"net/http"
 	"os"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 )
 
 // Assuming that the /opt/trustagent/var/system-info/platform-info file has been create

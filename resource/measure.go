@@ -7,13 +7,13 @@ package resource
 import (
 	"bytes"
 	"encoding/xml"
-	"intel/isecl/go-trust-agent/v3/constants"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 )
 
 const WML_LOG_FILE = constants.LogDir + "wml.log"

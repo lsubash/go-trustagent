@@ -6,15 +6,15 @@ package tasks
 
 import (
 	"crypto/x509/pkix"
-	"intel/isecl/go-trust-agent/v3/config"
-	"intel/isecl/go-trust-agent/v3/constants"
-	"intel/isecl/go-trust-agent/v3/util"
-	"intel/isecl/lib/common/v3/setup"
-	"intel/isecl/lib/tpmprovider/v3"
+	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/go-trust-agent/v4/util"
+	"intel/isecl/lib/common/v4/setup"
+	"intel/isecl/lib/tpmprovider/v4"
 	"os"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/clients/hvsclient"
-	commLog "github.com/intel-secl/intel-secl/v3/pkg/lib/common/log"
+	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
+	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
 	"github.com/pkg/errors"
 )
 

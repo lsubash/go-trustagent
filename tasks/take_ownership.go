@@ -6,10 +6,10 @@ package tasks
 
 import (
 	"fmt"
-	"intel/isecl/lib/common/v3/setup"
-	"intel/isecl/lib/tpmprovider/v3"
+	"intel/isecl/lib/common/v4/setup"
+	"intel/isecl/lib/tpmprovider/v4"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/crypt"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/crypt"
 	"github.com/pkg/errors"
 )
 

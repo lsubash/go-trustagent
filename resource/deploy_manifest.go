@@ -6,15 +6,15 @@ package resource
 
 import (
 	"encoding/xml"
-	"intel/isecl/go-trust-agent/v3/constants"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/clients/hvsclient"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/validation"
-	flavorConsts "github.com/intel-secl/intel-secl/v3/pkg/lib/flavor/constants"
+	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation"
+	flavorConsts "github.com/intel-secl/intel-secl/v4/pkg/lib/flavor/constants"
 )
 
 // Writes the manifest xml received to /opt/trustagent/var/manifest_{UUID}.xml.

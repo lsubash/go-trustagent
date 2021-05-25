@@ -6,12 +6,12 @@ package tasks
 
 import (
 	"fmt"
-	"intel/isecl/go-trust-agent/v3/util"
-	"intel/isecl/lib/common/v3/setup"
+	"intel/isecl/go-trust-agent/v4/util"
+	"intel/isecl/lib/common/v4/setup"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/clients/hvsclient"
-	"github.com/intel-secl/intel-secl/v3/pkg/hvs/domain/models"
-	cf "github.com/intel-secl/intel-secl/v3/pkg/lib/flavor/common"
+	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
+	"github.com/intel-secl/intel-secl/v4/pkg/hvs/domain/models"
+	cf "github.com/intel-secl/intel-secl/v4/pkg/lib/flavor/common"
 	"github.com/pkg/errors"
 )
 

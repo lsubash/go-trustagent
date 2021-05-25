@@ -5,16 +5,16 @@
 package tasks
 
 import (
-	"intel/isecl/go-trust-agent/v3/config"
-	"intel/isecl/go-trust-agent/v3/constants"
-	"intel/isecl/lib/common/v3/setup"
-	"intel/isecl/lib/tpmprovider/v3"
+	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/common/v4/setup"
+	"intel/isecl/lib/tpmprovider/v4"
 	"os"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/intel-secl/intel-secl/v3/pkg/clients/hvsclient"
-	"github.com/intel-secl/intel-secl/v3/pkg/model/hvs"
+	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
+	"github.com/intel-secl/intel-secl/v4/pkg/model/hvs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -11,16 +11,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
-	"intel/isecl/go-trust-agent/v3/config"
-	"intel/isecl/go-trust-agent/v3/constants"
-	"intel/isecl/lib/tpmprovider/v3"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/host-connector/types"
+	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/tpmprovider/v4"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 	"github.com/pkg/errors"
 )
 

@@ -5,7 +5,7 @@
 package util
 
 import (
-	"intel/isecl/go-trust-agent/v3/constants"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"os"
 )
 

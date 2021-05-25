@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"intel/isecl/go-trust-agent/v3/config"
-	"intel/isecl/go-trust-agent/v3/constants"
-	"intel/isecl/lib/common/v3/setup"
+	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/common/v4/setup"
 	"strconv"
 	"time"
 )

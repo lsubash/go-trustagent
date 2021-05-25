@@ -6,14 +6,14 @@ GITBRANCH := $(CI_COMMIT_BRANCH)
 BUILDDATE := $(shell TZ=UTC date +%Y-%m-%dT%H:%M:%SZ)
 VERSION := $(or ${GITTAG}, v1.0.0)
 PROXY_EXISTS := $(shell if [[ "${https_proxy}" || "${http_proxy}" ]]; then echo 1; else echo 0; fi)
-	MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl.git"
+	MONOREPO_GITURL := "ssh://git@gitlab.devtools.intel.com:29418/sst/isecl/intel-secl.git"
 #TODO use the latest tag
-MONOREPO_GITBRANCH := "v3.6.0"
+MONOREPO_GITBRANCH := "v4.0/develop"
 
 # TODO:  Update make file to support debug/release builds (release build to use secure gcflags)
 # -fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv -fPIE -fPIC -fstack-protector-strong -O2 -D
 gta:
-	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -gcflags=all="-N -l" -ldflags "-X intel/isecl/go-trust-agent/v3/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v3/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v3/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v3/util.BuildDate=$(BUILDDATE)" -o out/tagent
+	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -gcflags=all="-N -l" -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
 
 swagger-get:
 	wget https://github.com/go-swagger/go-swagger/releases/download/v0.21.0/swagger_linux_amd64 -O /usr/local/bin/swagger
@@ -49,7 +49,7 @@ installer: gta
 	makeself out/installer out/trustagent-$(VERSION).bin "TrustAgent $(VERSION)" ./install.sh
 
 unit_test_bin:
-	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -tags=unit_test -gcflags=all="-N -l" -ldflags "-X intel/isecl/go-trust-agent/v3/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v3/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v3/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v3/util.BuildDate=$(BUILDDATE)" -o out/tagent
+	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -tags=unit_test -gcflags=all="-N -l" -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
 
 unit_test: unit_test_bin
 	mkdir -p out

@@ -6,7 +6,7 @@ package util
 
 import (
 	"fmt"
-	"intel/isecl/go-trust-agent/v3/constants"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"strconv"
 	"strings"
 	"time"

@@ -6,7 +6,7 @@ package resource
 
 import (
 	"bytes"
-	"intel/isecl/go-trust-agent/v3/util"
+	"intel/isecl/go-trust-agent/v4/util"
 	"net/http"
 )
 

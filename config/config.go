@@ -12,15 +12,15 @@ import (
 	"sync"
 	"time"
 
-	commLog "github.com/intel-secl/intel-secl/v3/pkg/lib/common/log"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
-	commLogInt "github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/setup"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/validation"
+	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	commLogInt "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/setup"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"intel/isecl/go-trust-agent/v3/constants"
-	"intel/isecl/lib/common/v3/setup"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/common/v4/setup"
 )
 
 const (

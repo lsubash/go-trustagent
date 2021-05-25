@@ -6,7 +6,7 @@
 package util
 
 import (
-	"intel/isecl/lib/tpmprovider/v3"
+	"intel/isecl/lib/tpmprovider/v4"
 
 	"github.com/pkg/errors"
 )

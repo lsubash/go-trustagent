@@ -7,14 +7,14 @@ package resource
 import (
 	"bytes"
 	"fmt"
-	"intel/isecl/go-trust-agent/v3/config"
-	"intel/isecl/lib/tpmprovider/v3"
+	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/lib/tpmprovider/v4"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/middleware"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

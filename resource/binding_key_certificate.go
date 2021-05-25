@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
-	"intel/isecl/go-trust-agent/v3/constants"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	"intel/isecl/go-trust-agent/v4/constants"
 )
 
 // Returns the WLA provisioned binding key certificate from /etc/workload-agent/bindingkey.pem
