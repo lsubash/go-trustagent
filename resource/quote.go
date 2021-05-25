@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/intel-secl/intel-secl/v3/pkg/lib/host-connector/types"
 	"intel/isecl/go-trust-agent/v3/config"
 	"intel/isecl/go-trust-agent/v3/constants"
 	"intel/isecl/lib/tpmprovider/v3"
@@ -19,7 +18,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/intel-secl/intel-secl/v3/pkg/lib/common/log/message"
@@ -152,19 +150,13 @@ func (ctx *TpmQuoteContext) readAikAsBase64() error {
 	return nil
 }
 
-func (ctx *TpmQuoteContext) readEventLog(pcrBanks []string) error {
+func (ctx *TpmQuoteContext) readEventLog() error {
 	log.Trace("resource/quote:readEventLog() Entering")
 	defer log.Trace("resource/quote:readEventLog() Leaving")
 
-	// create map of active pcrbanks
-	activePcrBanks := make(map[string]bool, len(pcrBanks))
-	for _, pb := range pcrBanks {
-		activePcrBanks[pb] = true
-	}
-
 	if _, err := os.Stat(constants.MeasureLogFilePath); os.IsNotExist(err) {
 		log.Debugf("esource/quote:readEventLog() Event log file '%s' was not present", constants.MeasureLogFilePath)
-		return nil // if the file does not exist, do not include in the quote
+		return nil // If the file does not exist, do not include in the quote
 	}
 
 	eventLogBytes, err := ioutil.ReadFile(constants.MeasureLogFilePath)
@@ -172,39 +164,13 @@ func (ctx *TpmQuoteContext) readEventLog(pcrBanks []string) error {
 		return errors.Wrapf(err, "resource/quote:readEventLog() Error reading file: %s", constants.MeasureLogFilePath)
 	}
 
-	var xmlEventLog types.MeasureLog
-	// make sure the bytes are valid xml
-	err = xml.Unmarshal(eventLogBytes, &xmlEventLog)
+	// Make sure the bytes are valid json
+	err = json.Unmarshal(eventLogBytes, new(interface{}))
 	if err != nil {
 		return errors.Wrap(err, "resource/quote:readEventLog() Error while unmarshalling event log")
 	}
 
-	// ISECL-12121: strip out the event logs for the inactive PCR banks
-	var newmodule []types.Module
-	for i, eLog := range xmlEventLog.Txt.Modules.Module {
-		if _, ok := activePcrBanks[eLog.PcrBank]; ok {
-			newmodule = append(newmodule, eLog)
-		} else {
-			log.Infof("resource/quote:readEventLog() Dropping event log for inactive PCR bank %s "+
-				"at index %d", eLog.PcrBank, i)
-		}
-	}
-	xmlEventLog.Txt.Modules.Module = newmodule
-
-	// marshal the cleaned up log structure
-	eventLogBytes, err = xml.Marshal(xmlEventLog)
-	if err != nil {
-		return errors.Wrap(err, "resource/quote:readEventLog() Error while marshalling event log after cleanup")
-	}
-
-	// this was needed to avoid an error in HVS parsing...
-	// 'Current state not START_ELEMENT, END_ELEMENT or ENTITY_REFERENCE'
-	xml := string(eventLogBytes)
-	xml = strings.Replace(xml, " ", "", -1)
-	xml = strings.Replace(xml, "\t", "", -1)
-	xml = strings.Replace(xml, "\n", "", -1)
-
-	eventLog := base64.StdEncoding.EncodeToString([]byte(xml))
+	eventLog := string(eventLogBytes)
 	ctx.tpmQuoteResponse.EventLog = &eventLog
 	return nil
 }
@@ -306,8 +272,8 @@ func (ctx *TpmQuoteContext) createTpmQuote(tpmQuoteRequest *TpmQuoteRequest) err
 		return errors.Wrap(err, "resource/quote:createTpmQuote() Error while reading Aik as Base64")
 	}
 
-	// eventlog: read /opt/trustagent/var/measureLog.xml (created during ) --> needs to integrate with module_analysis.sh
-	err = ctx.readEventLog(tpmQuoteRequest.PcrBanks)
+	// eventlog: read /opt/trustagent/var/measure-log.json
+	err = ctx.readEventLog()
 	if err != nil {
 		return errors.Wrap(err, "resource/quote:createTpmQuote() Error while reading event log")
 	}
