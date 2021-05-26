@@ -7,11 +7,11 @@ package resource
 import (
 	"encoding/xml"
 
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	taModel "github.com/intel-secl/intel-secl/v4/pkg/model/ta"
 	"intel/isecl/go-trust-agent/v4/common"
 	"io/ioutil"
 	"net/http"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
-	taModel "github.com/intel-secl/intel-secl/v4/pkg/model/ta"
 )
 
 // Writes the manifest xml received to /opt/trustagent/var/manifest_{UUID}.xml.

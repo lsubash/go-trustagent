@@ -192,7 +192,7 @@ func requiresPermission(eh endpointHandler, permissionNames []string) endpointHa
 			secLog.Errorf("resource/service:requiresPermission() %s Roles: %v | Context: %v", message.AuthenticationFailed, permissionNames, r.Context())
 			return errors.Wrap(err, "resource/service:requiresPermission() Could not get user roles from http context")
 		}
-		reqPermissions := ct.PermissionInfo{Service: constants.AASServiceName, Rules: permissionNames}
+		reqPermissions := ct.PermissionInfo{Service: constants.TAServiceName, Rules: permissionNames}
 
 		_, foundMatchingPermission := auth.ValidatePermissionAndGetPermissionsContext(privileges, reqPermissions,
 			true)

@@ -7,11 +7,11 @@ package resource
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	taModel "github.com/intel-secl/intel-secl/v4/pkg/model/ta"
 	"intel/isecl/go-trust-agent/v4/common"
 	"io/ioutil"
 	"net/http"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
-	taModel "github.com/intel-secl/intel-secl/v4/pkg/model/ta"
 )
 
 //

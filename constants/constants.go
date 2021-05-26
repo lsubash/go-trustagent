@@ -39,7 +39,7 @@ const (
 	FlavorLabels               = "FLAVOR_LABELS"
 	ServiceName                = "tagent.service"
 	ExplicitServiceName        = "Trust Agent"
-	AASServiceName             = "TA"
+	TAServiceName              = "TA"
 	ServiceStatusCommand       = "systemctl status " + ServiceName
 	ServiceStopCommand         = "systemctl stop " + ServiceName
 	ServiceStartCommand        = "systemctl start " + ServiceName
@@ -87,6 +87,6 @@ const (
 	EnvTAServerIdleTimeout       = "TA_SERVER_IDLE_TIMEOUT"
 	EnvTAServerMaxHeaderBytes    = "TA_SERVER_MAX_HEADER_BYTES"
 	EnvTAServiceMode             = "TA_SERVICE_MODE"
-	EnvNATServers                = "NAT_SERVERS"
+	EnvNATServers                = "NATS_SERVERS"
 	EnvTAHostId                  = "TA_HOST_ID"
 )

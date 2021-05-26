@@ -6,10 +6,9 @@ package resource
 
 import (
 	"bytes"
-	"net/http"
-
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/constants"
+	"net/http"
 
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 )

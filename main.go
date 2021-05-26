@@ -109,7 +109,11 @@ Available Tasks for 'setup', all commands support env file flag
                                                                                                              Defaults to "127.0.0.1,localhost".
                                                        - TA_TLS_CERT_CN=<Common Name>                      : Sets the value for Common Name in the TA TLS certificate.
                                                                                                              Defaults to "Trust Agent TLS Certificate".
-
+  download-credential                       - Fetches Credential from AAS
+                                                    Required environment variables:
+                                                       - BEARER_TOKEN=<token>                              : for authenticating with AAS
+                                                       - AAS_API_URL=<url>                                 : AAS API URL
+                                                       - TA_HOST_ID=<ta-host-id>                           : FQDN of host
   update-certificates                       - Runs 'download-ca-cert' and 'download-cert'
                                                     Required environment variables:
                                                         - CMS_BASE_URL=<url>                                : CMS API URL
@@ -467,6 +471,11 @@ func main() {
 			subscriber, err := outbound.NewHVSSubscriber(requestHandler, cfg)
 			if err != nil {
 				log.Errorf("Error creating the HVS subscriber: %+v", err)
+			}
+
+			if subscriber == nil {
+				log.Errorf("main:main() Error: could not initialize hvs subscriber")
+				os.Exit(1)
 			}
 
 			err = subscriber.Start()

@@ -32,6 +32,7 @@ const (
 	ProvisionAttestationCommand            = "provision-attestation"
 	UpdateCertificatesCommand              = "update-certificates"
 	UpdateServiceConfigCommand             = "update-service-config"
+	DownloadCredentialCommand              = "download-credential"
 )
 
 var log = commLog.GetDefaultLogger()
@@ -117,6 +118,11 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		ownerSecretKey: &cfg.Tpm.OwnerSecretKey,
 	}
 
+	downloadCredentialTask := &DownloadCredential{
+		aasUrl: cfg.AAS.BaseURL,
+		hostId: cfg.Nats.HostID,
+	}
+
 	createHostUniqueFlavorTask := &CreateHostUniqueFlavor{
 		clientFactory:  vsClientFactory,
 		trustAgentPort: cfg.WebService.Port,
@@ -156,8 +162,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadPrivacyCATask,
 			takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
 		if cfg.Mode == constants.CommunicationModeOutbound {
-			//TODO: Add task
-			//runner.Tasks = append(runner.Tasks, downloadCredentials)
+			runner.Tasks = append(runner.Tasks, downloadCredentialTask)
 		} else {
 			runner.Tasks = append(runner.Tasks, downloadTLSCertTask)
 		}
@@ -183,6 +188,12 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	case UpdateServiceConfigCommand:
 		runner.Tasks = append(runner.Tasks, updateServiceConfigTask)
 
+	case DownloadCredentialCommand:
+		if cfg.Mode == constants.CommunicationModeOutbound {
+			runner.Tasks = append(runner.Tasks, downloadCredentialTask)
+		} else {
+			return nil, errors.Errorf("cannot run download-credential task when %s is not set to %s", constants.EnvTAServiceMode, constants.CommunicationModeOutbound)
+		}
 	default:
 		return nil, errors.New("Invalid setup command")
 	}

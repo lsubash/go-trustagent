@@ -192,7 +192,7 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 
 	// TRUSTAGENT_LOG_LEVEL
 	//---------------------------------------------------------------------------------------------
-	ll, err := context.GetenvString("TRUSTAGENT_LOG_LEVEL", "Logging Level")
+	ll, err := context.GetenvString(constants.EnvTALogLevel, "Logging Level")
 	if err == nil {
 		llp, err := logrus.ParseLevel(ll)
 		if err == nil {
@@ -201,11 +201,11 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 			dirty = true
 		}
 	} else {
-		fmt.Println("There was an error retrieving the log level from TRUSTAGENT_LOG_LEVEL")
+		fmt.Printf("There was an error retrieving the log level from %s", constants.EnvTALogLevel)
 	}
 
 	if cfg.Logging.LogLevel == "" {
-		fmt.Println("TRUSTAGENT_LOG_LEVEL not defined, using default log level: Info")
+		fmt.Println(constants.EnvTALogLevel, " not defined, using default log level: Info")
 		cfg.Logging.LogLevel = logrus.InfoLevel.String()
 		dirty = true
 	}
@@ -259,27 +259,34 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 		(environmentVariable == constants.CommunicationModeHttp || environmentVariable == constants.CommunicationModeOutbound) {
 		cfg.Mode = environmentVariable
 		dirty = true
+		if cfg.Mode == constants.CommunicationModeOutbound {
+			//---------------------------------------------------------------------------------------------
+			// NAT_SERVERS
+			//---------------------------------------------------------------------------------------------
+			environmentVariable, err = context.GetenvString(constants.EnvNATServers, "NAT servers")
+			if err == nil && environmentVariable != "" {
+				cfg.Nats.Servers = strings.Split(environmentVariable, ",")
+				dirty = true
+			} else {
+				fmt.Println(constants.EnvNATServers, " not defined")
+				dirty = false
+			}
+
+			//---------------------------------------------------------------------------------------------
+			// TA_HOST_ID
+			//---------------------------------------------------------------------------------------------
+			environmentVariable, err = context.GetenvString(constants.EnvTAHostId, "Trustagent Host Id")
+			if err == nil && environmentVariable != "" {
+				cfg.Nats.HostID = environmentVariable
+				dirty = true
+			} else {
+				fmt.Println(constants.EnvTAHostId, " not defined")
+				dirty = false
+			}
+		}
 	} else {
 		fmt.Printf("Invalid TA_SERVICE_MODE, using default value %s\n", constants.CommunicationModeHttp)
 		cfg.Mode = constants.CommunicationModeHttp
-	}
-
-	//---------------------------------------------------------------------------------------------
-	// NAT_SERVERS
-	//---------------------------------------------------------------------------------------------
-	environmentVariable, err = context.GetenvString(constants.EnvNATServers, "NAT servers")
-	if err == nil && environmentVariable != "" {
-		cfg.Nats.Servers = strings.Split(environmentVariable, ",")
-		dirty = true
-	}
-
-	//---------------------------------------------------------------------------------------------
-	// TA_HOST_ID
-	//---------------------------------------------------------------------------------------------
-	environmentVariable, err = context.GetenvString(constants.EnvTAHostId, "Trustagent Host Id")
-	if err == nil && environmentVariable != "" {
-		cfg.Nats.HostID = environmentVariable
-		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
