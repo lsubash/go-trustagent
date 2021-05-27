@@ -90,3 +90,13 @@ const (
 	EnvNATServers                = "NATS_SERVERS"
 	EnvTAHostId                  = "TA_HOST_ID"
 )
+
+type SHAAlgorithm string
+
+const (
+	SHA1    SHAAlgorithm = "SHA1"
+	SHA256  SHAAlgorithm = "SHA256"
+	SHA384  SHAAlgorithm = "SHA384"
+	SHA512  SHAAlgorithm = "SHA512"
+	UNKNOWN SHAAlgorithm = "unknown"
+)
