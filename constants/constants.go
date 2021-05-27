@@ -91,6 +91,7 @@ const (
 	EnvTAHostId                  = "TA_HOST_ID"
 )
 
+// "TODO" comment -- the SHA constants should live in intel-secl/pkg/model/
 type SHAAlgorithm string
 
 const (
