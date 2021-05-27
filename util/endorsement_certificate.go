@@ -45,5 +45,26 @@ func GetEndorsementKeyCertificateBytes(ownerSecretKey string) ([]byte, error) {
 		return nil, errors.Wrap(err, "util/endorsement_certificate:GetEndorsementKeyCertificateBytes() Error while performing tpm Nv read operation for getting endorsement certificate in bytes")
 	}
 
+	// check if the multi-level EK issuer cert chain is provisioned
+	// check to see if the EK Certificate exists...
+	eccOnDieCaCertChainExists, err := tpm.NvIndexExists(tpmprovider.NV_IDX_X509_P384_EK_CERTCHAIN)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error checking if the EK Issuing Cert Chain is present")
+	}
+
+	// cert chain exists - proceed to retrieve
+	if eccOnDieCaCertChainExists {
+		issuingCertChainBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.NV_IDX_X509_P384_EK_CERTCHAIN)
+		if err != nil {
+			return nil, errors.Wrap(err, "util/endorsement_certificate:GetEndorsementKeyCertificateBytes() Error "+
+				"while performing tpm Nv read operation for getting endorsement certificate chain in bytes")
+		}
+
+		// assemble the full EC chain with the issuing certificates first
+		var fullChainBytes []byte
+		fullChainBytes = append(fullChainBytes, issuingCertChainBytes...)
+		fullChainBytes = append(fullChainBytes, ekCertBytes...)
+		ekCertBytes = fullChainBytes
+	}
 	return ekCertBytes, nil
 }

@@ -127,6 +127,9 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 	}
 
 	identityChallengeResponse, err = privacyca.GetIdentityChallengeRequest(decrypted1, privacyCaCert, identityChallengeResponse.IdentityRequest)
+	if err != nil {
+		return errors.Wrap(err, "Failed to retrieve the identity challenge from HVS")
+	}
 
 	// send the decrypted nonce data back to HVS and get a 'proof request' back
 	identityProofRequest2, err := privacyCAClient.GetIdentityProofResponse(&identityChallengeResponse)
