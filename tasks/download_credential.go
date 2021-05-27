@@ -6,15 +6,16 @@ package tasks
 
 import (
 	"fmt"
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/common/v4/setup"
+	"io/ioutil"
+	"os"
+
 	"github.com/intel-secl/intel-secl/v4/pkg/clients"
 	"github.com/intel-secl/intel-secl/v4/pkg/clients/aas"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/crypt"
 	types "github.com/intel-secl/intel-secl/v4/pkg/model/aas"
 	"github.com/pkg/errors"
-	"intel/isecl/go-trust-agent/v4/constants"
-	"intel/isecl/lib/common/v4/setup"
-	"io/ioutil"
-	"os"
 )
 
 type DownloadCredential struct {
@@ -38,11 +39,11 @@ func (task *DownloadCredential) Run(c setup.Context) error {
 	}
 
 	if task.hostId == "" {
-		return errors.Errorf("%S is not set", constants.EnvTAHostId)
+		return errors.Errorf("%s is not set", constants.EnvTAHostId)
 	}
 
 	if task.aasUrl == "" {
-		return errors.Errorf(" %s is not set", constants.EnvAASBaseURL)
+		return errors.Errorf("%s is not set", constants.EnvAASBaseURL)
 	}
 
 	caCerts, err := crypt.GetCertsFromDir(constants.TrustedCaCertsDir)
