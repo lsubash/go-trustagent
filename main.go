@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
@@ -32,6 +31,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
 
 	commonExec "github.com/intel-secl/intel-secl/v4/pkg/lib/common/exec"
 	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
@@ -164,7 +165,8 @@ Available Tasks for 'setup', all commands support env file flag
                                                         - TA_SERVER_MAX_HEADER_BYTES                        : Trustagent Max Header Bytes Timeout                                                    
                                                         - TRUSTAGENT_LOG_LEVEL                              : Logging Level                                                    
                                                         - TA_ENABLE_CONSOLE_LOG                             : Trustagent Enable standard output                                                    
-                                                        - LOG_ENTRY_MAXLENGTH                               : Maximum length of each entry in a log                                                    `
+                                                        - LOG_ENTRY_MAXLENGTH                               : Maximum length of each entry in a log
+  define-tag-index                          - Allocates nvram in the TPM for use by asset tags.`
 
 	fmt.Println(usage)
 }
@@ -457,13 +459,6 @@ func main() {
 
 		cfg.LogConfiguration(cfg.Logging.LogEnableStdout)
 
-		// make sure the config is valid before starting the trust agent service
-		err = cfg.Validate()
-		if err != nil {
-			log.Errorf("main:main() Error while validating the configuration file: %s", err)
-			os.Exit(1)
-		}
-
 		requestHandler := common.NewRequestHandler(cfg)
 
 		if strings.ToLower(cfg.Mode) == constants.CommunicationModeOutbound {
@@ -603,7 +598,7 @@ func main() {
 		}
 
 	case "fetch-ekcert-with-issuer":
-		err = fetchEndorsementCert(cfg.Tpm.OwnerSecretKey)
+		err = fetchEndorsementCert(cfg.Tpm.TagSecretKey)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "main:main() Error while running trustagent fetch-ekcert-with-issuer %s\n", err.Error())
 			os.Exit(1)
@@ -693,10 +688,10 @@ func run_systemctl(systemCtlCmd string) (string, error) {
 	return string(out), nil
 }
 
-func fetchEndorsementCert(ownerSecret string) error {
+func fetchEndorsementCert(assetTagSecret string) error {
 	log.Trace("main:fetchEndorsementCert() Entering")
 	defer log.Trace("main:fetchEndorsementCert() Leaving")
-	ekCertBytes, err := util.GetEndorsementKeyCertificateBytes(ownerSecret)
+	ekCertBytes, err := util.GetEndorsementKeyCertificateBytes(assetTagSecret)
 	if err != nil {
 		log.WithError(err).Error("main:fetchEndorsementCert() Error while getting endorsement certificate in bytes from tpm")
 		return errors.New("Error while getting endorsement certificate in bytes from tpm")

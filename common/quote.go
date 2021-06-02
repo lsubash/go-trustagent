@@ -5,10 +5,13 @@
 package common
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/lib/tpmprovider/v4"
@@ -46,7 +49,7 @@ func CreateTpmQuoteResponse(cfg *config.TrustAgentConfiguration, tpm tpmprovider
 	log.Infof("TpmQuoteRequest: %+v", tpmQuoteRequest)
 
 	if len(tpmQuoteRequest.Nonce) == 0 {
-		secLog.Errorf("common/quote:getTpmQuote() %s - The TpmQuoteRequest does not contain a nonce", message.InvalidInputProtocolViolation)
+		secLog.Errorf("common/quote:CreateTpmQuoteResponse() %s - The TpmQuoteRequest does not contain a nonce", message.InvalidInputProtocolViolation)
 		return nil, errors.New("The TpmQuoteRequest does not contain a nonce")
 	}
 
@@ -58,18 +61,18 @@ func CreateTpmQuoteResponse(cfg *config.TrustAgentConfiguration, tpm tpmprovider
 	for i, pcrBank := range tpmQuoteRequest.PcrBanks {
 		isActive, err := tpm.IsPcrBankActive(pcrBank)
 		if !isActive {
-			log.Infof("common/quote:getQuote() %s PCR bank is inactive. Dropping from quote request. %s",
+			log.Infof("common/quote:CreateTpmQuoteResponse() %s PCR bank is inactive. Dropping from quote request. %s",
 				pcrBank, err.Error())
 			tpmQuoteRequest.PcrBanks = append(tpmQuoteRequest.PcrBanks[:i], tpmQuoteRequest.PcrBanks[i+1:]...)
 		} else if err != nil {
-			log.WithError(err).Errorf("common/quote:getQuote() Error while determining PCR bank "+
+			log.WithError(err).Errorf("common/quote:CreateTpmQuoteResponse() Error while determining PCR bank "+
 				"%s state: %s", pcrBank, err.Error())
 		}
 	}
 
-	tpmQuoteResponse, err := createTpmQuote(cfg.Tpm.OwnerSecretKey, cfg.Tpm.AikSecretKey, tpm, tpmQuoteRequest)
+	tpmQuoteResponse, err := createTpmQuote(cfg.Tpm.TagSecretKey, tpm, tpmQuoteRequest)
 	if err != nil {
-		log.WithError(err).Errorf("common/quote:getTpmQuote() %s - Error while creating the tpm quote", message.AppRuntimeErr)
+		log.WithError(err).Errorf("common/quote:CreateTpmQuoteResponse() %s - Error while creating the tpm quote", message.AppRuntimeErr)
 		return nil, err
 	}
 
@@ -161,10 +164,10 @@ func readEventLog() (string, error) {
 	return string(eventLogBytes), nil
 }
 
-func getQuote(aikSecretKey string, tpm tpmprovider.TpmProvider, tpmQuoteRequest *taModel.TpmQuoteRequest, nonce []byte) (string, error) {
+func getQuote(tpm tpmprovider.TpmProvider, tpmQuoteRequest *taModel.TpmQuoteRequest, nonce []byte) (string, error) {
 
 	log.Debugf("common/quote:getQuote() Providing tpm nonce value '%s', raw[%s]", base64.StdEncoding.EncodeToString(nonce), hex.EncodeToString(nonce))
-	quoteBytes, err := tpm.GetTpmQuote(aikSecretKey, nonce, tpmQuoteRequest.PcrBanks, tpmQuoteRequest.Pcrs)
+	quoteBytes, err := tpm.GetTpmQuote(nonce, tpmQuoteRequest.PcrBanks, tpmQuoteRequest.Pcrs)
 	if err != nil {
 		return "", err
 	}
@@ -200,7 +203,7 @@ func getTcbMeasurements() ([]string, error) {
 	return measurements, nil
 }
 
-func getAssetTags(ownerSecretKey string, tpm tpmprovider.TpmProvider) (string, error) {
+func getAssetTags(tagSecretKey string, tpm tpmprovider.TpmProvider) (string, error) {
 	log.Trace("common/quote:getAssetTags() Entering")
 	defer log.Trace("common/quote:getAssetTags() Leaving")
 
@@ -209,20 +212,47 @@ func getAssetTags(ownerSecretKey string, tpm tpmprovider.TpmProvider) (string, e
 		return "", errors.Wrap(err, "common/quote:getAssetTags() Error while checking existence of Nv Index")
 	}
 
-	if tagExists {
-
-		tagBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.NV_IDX_ASSET_TAG)
-		if err != nil {
-			return "", errors.Wrap(err, "common/quote:getAssetTags() Error while performing tpm nv read operation")
-		}
-
-		return base64.StdEncoding.EncodeToString(tagBytes), nil
+	if !tagExists {
+		log.Warn("The asset tag nvram is not present")
+		return "", nil
 	}
 
-	return "", nil
+	indexBytes, err := tpm.NvRead(tagSecretKey, tpmprovider.NV_IDX_ASSET_TAG, tpmprovider.NV_IDX_ASSET_TAG)
+	if err != nil {
+		return "", errors.Wrap(err, "resource/quote:getAssetTags() Error while performing tpm nv read operation")
+	}
+
+	if len(indexBytes) < 2 {
+		return "", errors.New("Invalid tag index length")
+	}
+
+	tagLength := uint16(0)
+	r := bytes.NewReader(indexBytes)
+	err = binary.Read(r, binary.LittleEndian, &tagLength)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to read asset tag length")
+	}
+
+	if tagLength == 0 {
+		return "", nil
+	} else if tagLength > constants.MaxHashLength {
+		return "", fmt.Errorf("Invalid tag length %d", tagLength)
+	}
+
+	tagBytes := make([]byte, tagLength)
+	l, err := r.Read(tagBytes)
+	if err != nil {
+		return "", fmt.Errorf("Failed to read tag bytes with length %d", tagLength)
+	}
+
+	if l != int(tagLength) {
+		return "", fmt.Errorf("The index contained length %d but only %d were read", tagLength, l)
+	}
+
+	return base64.StdEncoding.EncodeToString(tagBytes), nil // this data will be evaluated in 'getNonce'
 }
 
-func createTpmQuote(ownerSecretKey, aikSecretKey string, tpm tpmprovider.TpmProvider, tpmQuoteRequest *taModel.TpmQuoteRequest) (*taModel.TpmQuoteResponse, error) {
+func createTpmQuote(tagSecretKey string, tpm tpmprovider.TpmProvider, tpmQuoteRequest *taModel.TpmQuoteRequest) (*taModel.TpmQuoteResponse, error) {
 	log.Trace("common/quote:createTpmQuote() Entering")
 	defer log.Trace("common/quote:createTpmQuote() Leaving")
 
@@ -233,7 +263,7 @@ func createTpmQuote(ownerSecretKey, aikSecretKey string, tpm tpmprovider.TpmProv
 	}
 
 	// getAssetTags must be called before getQuote so that the nonce is created correctly - see comments for getNonce()
-	tpmQuoteResponse.AssetTag, err = getAssetTags(ownerSecretKey, tpm)
+	tpmQuoteResponse.AssetTag, err = getAssetTags(tagSecretKey, tpm)
 	if err != nil {
 		return nil, errors.Wrap(err, "common/quote:createTpmQuote() Error while retrieving asset tags")
 	}
@@ -250,7 +280,7 @@ func createTpmQuote(ownerSecretKey, aikSecretKey string, tpm tpmprovider.TpmProv
 	log.Infof("NONCE: %+v", nonce)
 
 	// get the quote from tpmprovider
-	tpmQuoteResponse.Quote, err = getQuote(aikSecretKey, tpm, tpmQuoteRequest, nonce)
+	tpmQuoteResponse.Quote, err = getQuote(tpm, tpmQuoteRequest, nonce)
 	if err != nil {
 		return nil, errors.Wrap(err, "common/quote:createTpmQuote() Error while retrieving tpm quote request")
 	}

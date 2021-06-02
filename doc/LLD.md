@@ -74,6 +74,7 @@ By default, the `tagent setup` command (or `tagent setup all`) is used during in
 |provision-ek|Validates the TPM's endorsement key (EK) against the list stored in HVS.|Validates the TPM's EK against the  manufacture certs downloaded from HVS (/ca-certificates?domain=ek).  Stores the manufacture EKs from HVS at /opt/trustagent/configuration/endorsement.pem.  Returns an error if the TPM EK is not valid.  Optionally registers the EK with HVS (if not present).|TPM_OWNER_SECRET, HVS_URL, BEARER_TOKEN|
 |provision-aik|Performs dark magic that provisions an AIK with HVS, supporting the ability to collect authenticated tpm quotes. |Generates an AIK secret key that is stored in /opt/trustagent/configuration/config.yml.  Creates /opt/trustagent/configuration/aik.cer that is hosted in the /aik endpoint.|TPM_OWNER_SECRET, HVS_URL, BEARER_TOKEN|
 |provision-primary-key|Allocates a primary key in the TPM used by WLA to create the binding/singing keys.|Allocates a new primary key in the TPM at index 0x81000000.|TPM_OWNER_SECRET|
+|define-tag-index|Generates a 'asset tag' password and allocates nvram in the TPM for use by asset tags.|||
 
 *Note:  While GTA supports the option of independently executing the tasks below (ex. `tagent setup provision-ek`), it is not recommended due to complex ordering and interdependencies.*
 

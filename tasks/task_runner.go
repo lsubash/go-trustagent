@@ -32,6 +32,7 @@ const (
 	ProvisionAttestationCommand            = "provision-attestation"
 	UpdateCertificatesCommand              = "update-certificates"
 	UpdateServiceConfigCommand             = "update-service-config"
+	DefineTagIndexCommand                  = "define-tag-index"
 	DownloadCredentialCommand              = "download-credential"
 )
 
@@ -46,9 +47,29 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	var tpmFactory tpmprovider.TpmFactory
 	var err error
 	var runner setup.Runner
+	var ownerSecret *string
 
 	if cfg == nil {
 		return nil, errors.New("The cfg parameter was not provided")
+	}
+
+	//
+	// There are three possible states to the TPM_OWNER_SECRET env var...
+	// 1.) Not in env.  take-ownership should generate a new secret and attempt
+	//     to take ownerhsip of the TPM (pass nil pointer to take-ownerhsip task).
+	// 2.) In env but empty.  This is valid for customers that have cleared the TPM
+	//     but don't want to take-ownership with a secret (pass the empty string so
+	//     take-ownership can verify that empty-auth can access the TPM).
+	// 3.) In env and not empty.  The customer has already taken ownership of TPM and
+	//     has provided the password in TPM_OWNER_SECRET.  Similar to #2, pass the
+	//     string into take-ownership and return an error if it can't be used to
+	//     access the TPM.
+	//
+	envSecret, exists := os.LookupEnv(constants.EnvTPMOwnerSecret)
+	if exists {
+		ownerSecret = &envSecret
+	} else {
+		log.Infof("The TPM_OWNER_SECRET environment variable is not defined.")
 	}
 
 	switch setupCmd {
@@ -61,7 +82,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		}
 		fallthrough
 
-	case TakeOwnershipCommand, ProvisionPrimaryKeyCommand:
+	case TakeOwnershipCommand, ProvisionPrimaryKeyCommand, DefineTagIndexCommand:
 		switch setupCmd {
 		case DefaultSetupCommand, ProvisionAttestationIdentityKeyCommand, ProvisionAttestationCommand,
 			TakeOwnershipCommand, ProvisionPrimaryKeyCommand:
@@ -74,7 +95,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	takeOwnershipTask := &TakeOwnership{
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &cfg.Tpm.OwnerSecretKey,
+		ownerSecretKey: &ownerSecret,
 	}
 
 	downloadRootCACertTask := &setup.Download_Ca_Cert{
@@ -105,8 +126,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	provisionAttestationIdentityKeyTask := &ProvisionAttestationIdentityKey{
 		clientFactory:  vsClientFactory,
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &cfg.Tpm.OwnerSecretKey,
-		aikSecretKey:   &cfg.Tpm.AikSecretKey,
+		ownerSecretKey: &ownerSecret,
 	}
 
 	downloadPrivacyCATask := &DownloadPrivacyCA{
@@ -115,7 +135,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	provisionPrimaryKeyTask := &ProvisionPrimaryKey{
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &cfg.Tpm.OwnerSecretKey,
+		ownerSecretKey: &ownerSecret,
 	}
 
 	downloadCredentialTask := &DownloadCredential{
@@ -141,9 +161,15 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		cfg: &cfg,
 	}
 
+	defineTagIndexTask := &DefineTagIndex{
+		tpmFactory:     tpmFactory,
+		ownerSecretKey: &ownerSecret,
+		assetTagSecret: &cfg.Tpm.TagSecretKey,
+	}
+
 	switch setupCmd {
 	case ProvisionAttestationCommand:
-		runner.Tasks = append(runner.Tasks, []setup.Task{downloadPrivacyCATask, takeOwnershipTask,
+		runner.Tasks = append(runner.Tasks, []setup.Task{downloadPrivacyCATask, takeOwnershipTask, defineTagIndexTask,
 			provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
 
 	case UpdateCertificatesCommand:
@@ -160,7 +186,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	case DefaultSetupCommand:
 		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadPrivacyCATask,
-			takeOwnershipTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
+			takeOwnershipTask, defineTagIndexTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
 		if cfg.Mode == constants.CommunicationModeOutbound {
 			runner.Tasks = append(runner.Tasks, downloadCredentialTask)
 		} else {
@@ -188,12 +214,16 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	case UpdateServiceConfigCommand:
 		runner.Tasks = append(runner.Tasks, updateServiceConfigTask)
 
+	case DefineTagIndexCommand:
+		runner.Tasks = append(runner.Tasks, defineTagIndexTask)
+
 	case DownloadCredentialCommand:
 		if cfg.Mode == constants.CommunicationModeOutbound {
 			runner.Tasks = append(runner.Tasks, downloadCredentialTask)
 		} else {
 			return nil, errors.Errorf("cannot run download-credential task when %s is not set to %s", constants.EnvTAServiceMode, constants.CommunicationModeOutbound)
 		}
+
 	default:
 		return nil, errors.New("Invalid setup command")
 	}

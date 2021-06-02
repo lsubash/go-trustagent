@@ -14,7 +14,7 @@ import (
 
 type ProvisionPrimaryKey struct {
 	tpmFactory     tpmprovider.TpmFactory
-	ownerSecretKey *string
+	ownerSecretKey **string
 }
 
 // This task is used to persist a primary public key at handle TPM_HANDLE_PRIMARY
@@ -23,6 +23,13 @@ func (task *ProvisionPrimaryKey) Run(c setup.Context) error {
 	log.Trace("tasks/provision_primary_key:Run() Entering")
 	defer log.Trace("tasks/provision_primary_key:Run() Leaving")
 	fmt.Println("Running setup task: provision-primary-key")
+
+	if task.ownerSecretKey == nil || *task.ownerSecretKey == nil {
+		errorMessage := `The 'provision-primary-key' task requires the owner-secret.  If you wish to generate
+		a new owner-secret (i.e., with take-ownership), 'provision-primary-key' must be 
+		run at the same time using 'tagent setup' or 'tagent setup provsion-attestation'.`
+		return errors.New(errorMessage)
+	}
 
 	tpm, err := task.tpmFactory.NewTpmProvider()
 	if err != nil {
@@ -37,7 +44,7 @@ func (task *ProvisionPrimaryKey) Run(c setup.Context) error {
 	}
 
 	if !exists {
-		err = tpm.CreatePrimaryHandle(*task.ownerSecretKey, tpmprovider.TPM_HANDLE_PRIMARY)
+		err = tpm.CreatePrimaryHandle(**task.ownerSecretKey, tpmprovider.TPM_HANDLE_PRIMARY)
 		if err != nil {
 			return errors.Wrap(err, "Error while creating the primary handle in the TPM")
 		}

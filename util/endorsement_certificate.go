@@ -40,7 +40,7 @@ func GetEndorsementKeyCertificateBytes(ownerSecretKey string) ([]byte, error) {
 		return nil, errors.Errorf("The TPM does not have an RSA EK Certificate at the default index 0x%x", tpmprovider.NV_IDX_RSA_ENDORSEMENT_CERTIFICATE)
 	}
 
-	ekCertBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.NV_IDX_RSA_ENDORSEMENT_CERTIFICATE)
+	ekCertBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.TPM2_RH_OWNER, tpmprovider.NV_IDX_RSA_ENDORSEMENT_CERTIFICATE)
 	if err != nil {
 		return nil, errors.Wrap(err, "util/endorsement_certificate:GetEndorsementKeyCertificateBytes() Error while performing tpm Nv read operation for getting endorsement certificate in bytes")
 	}
@@ -54,7 +54,7 @@ func GetEndorsementKeyCertificateBytes(ownerSecretKey string) ([]byte, error) {
 
 	// cert chain exists - proceed to retrieve
 	if eccOnDieCaCertChainExists {
-		issuingCertChainBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.NV_IDX_X509_P384_EK_CERTCHAIN)
+		issuingCertChainBytes, err := tpm.NvRead(ownerSecretKey, tpmprovider.TPM2_RH_OWNER, tpmprovider.NV_IDX_X509_P384_EK_CERTCHAIN)
 		if err != nil {
 			return nil, errors.Wrap(err, "util/endorsement_certificate:GetEndorsementKeyCertificateBytes() Error "+
 				"while performing tpm Nv read operation for getting endorsement certificate chain in bytes")

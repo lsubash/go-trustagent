@@ -12,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"intel/isecl/go-trust-agent/v4/constants"
+	"intel/isecl/lib/common/v4/setup"
+
 	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 	commLogInt "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/setup"
@@ -19,17 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"intel/isecl/go-trust-agent/v4/constants"
-	"intel/isecl/lib/common/v4/setup"
 )
-
-const (
-	AIK_SECRET_KEY = "aik.secret"
-)
-
-//
-//  Adapted from certificate-management-service/config/config.go
-//
 
 type TrustAgentConfiguration struct {
 	configFile string
@@ -51,8 +44,7 @@ type TrustAgentConfiguration struct {
 		Url string // HVS_URL
 	}
 	Tpm struct {
-		OwnerSecretKey string // TPM_OWNER_SECRET (generated if not provided during take-ownership)
-		AikSecretKey   string // Generated in provision-aik
+		TagSecretKey string
 	}
 	AAS struct {
 		BaseURL string // AAS_API_URL
@@ -147,15 +139,7 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	var err error
 	dirty := false
 	var context setup.Context
-
-	//---------------------------------------------------------------------------------------------
-	// TPM_OWNER_SECRET
-	//---------------------------------------------------------------------------------------------
-	environmentVariable, err := context.GetenvSecret(constants.EnvTPMOwnerSecret, "TPM Owner Secret")
-	if environmentVariable != "" && cfg.Tpm.OwnerSecretKey != environmentVariable {
-		cfg.Tpm.OwnerSecretKey = environmentVariable
-		dirty = true
-	} // else := ok (This field may be generated in tasks/take-ownership when not present.)
+	var environmentVariable string
 
 	//---------------------------------------------------------------------------------------------
 	// HVS_URL
@@ -297,26 +281,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 		if err != nil {
 			return errors.Wrap(err, "Error saving configuration")
 		}
-	}
-
-	return nil
-}
-
-// This function validates whether or not the configuration has enough information to start the http
-// service.  It requires the TPM owner/aik secret, port and AAS URL to run (all other configuration is
-// required during setup).
-func (cfg *TrustAgentConfiguration) Validate() error {
-
-	if cfg.Tpm.OwnerSecretKey == "" {
-		return errors.New("The Trust-Agent service requires that the configuration contains a TPM 'owner' secret.")
-	}
-
-	if cfg.Tpm.AikSecretKey == "" {
-		return errors.New("The Trust-Agent service requires that the configuration contains a TPM 'aik' secret.")
-	}
-
-	if cfg.AAS.BaseURL == "" {
-		return errors.New("The Trust-Agent service requires that the configuration contains an AAS url.")
 	}
 
 	return nil
