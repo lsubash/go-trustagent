@@ -11,7 +11,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	gopkg.in/yaml.v2 v2.3.0
 	intel/isecl/lib/common/v4 v4.0.0
-	intel/isecl/lib/platform-info/v4 v4.0.0
 	intel/isecl/lib/tpmprovider/v4 v4.0.0
 )
 
@@ -19,6 +18,5 @@ replace (
 	github.com/intel-secl/intel-secl/v4 => gitlab.devtools.intel.com/sst/isecl/intel-secl.git/v4 v4.0/develop
 	github.com/vmware/govmomi => github.com/arijit8972/govmomi fix-tpm-attestation-output
 	intel/isecl/lib/common/v4 => gitlab.devtools.intel.com/sst/isecl/lib/common.git/v4 v4.0/develop
-	intel/isecl/lib/platform-info/v4 => gitlab.devtools.intel.com/sst/isecl/lib/platform-info.git/v4 v4.0/develop
 	intel/isecl/lib/tpmprovider/v4 => gitlab.devtools.intel.com/sst/isecl/lib/tpm-provider.git/v4 v4.0/develop
 )

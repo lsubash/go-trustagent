@@ -23,7 +23,6 @@ import (
 	_ "intel/isecl/go-trust-agent/v4/swagger/docs"
 	"intel/isecl/go-trust-agent/v4/tasks"
 	"intel/isecl/go-trust-agent/v4/util"
-	"intel/isecl/lib/platform-info/v4/platforminfo"
 	"os"
 	"os/exec"
 	"os/user"
@@ -38,6 +37,7 @@ import (
 	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/hostinfo"
 	"github.com/pkg/errors"
 )
 
@@ -171,11 +171,37 @@ Available Tasks for 'setup', all commands support env file flag
 	fmt.Println(usage)
 }
 
+func getHostInfoJSON() ([]byte, error) {
+	hostInfoParser, err := hostinfo.NewHostInfoParser()
+	if err != nil {
+		return nil, fmt.Errorf("Error creating host-info parser: %v", err)
+	}
+
+	hostInfo, err := hostInfoParser.Parse()
+	if err != nil {
+		return nil, errors.Wrap(err, "Error parsing host-info")
+	}
+
+	// serialize to json
+	hostInfoJSON, err := json.MarshalIndent(hostInfo, "", "  ")
+	if err != nil {
+		return nil, errors.Wrap(err, "Error serializing hostinfo to JSON")
+	}
+
+	return hostInfoJSON, nil
+}
+
 func updatePlatformInfo() error {
 	log.Trace("main:updatePlatformInfo() Entering")
 	defer log.Trace("main:updatePlatformInfo() Leaving")
+
+	hostInfoJSON, err := getHostInfoJSON()
+	if err != nil {
+		return err
+	}
+
 	// make sure the system-info directory exists
-	_, err := os.Stat(constants.SystemInfoDir)
+	_, err = os.Stat(constants.SystemInfoDir)
 	if err != nil {
 		return errors.Wrapf(err, "main:updatePlatformInfo() Error while checking the existence of %s", constants.SystemInfoDir)
 	}
@@ -192,25 +218,12 @@ func updatePlatformInfo() error {
 		}
 	}()
 
-	// collect the platform info
-	secLog.Infof("%s main:updatePlatformInfo() Trying to fetch platform info", message.SU)
-	platformInfo, err := platforminfo.GetPlatformInfo()
-	if err != nil {
-		return errors.Wrap(err, "main:updatePlatformInfo() Error while fetching platform info")
-	}
-
-	// serialize to json
-	b, err := json.Marshal(platformInfo)
-	if err != nil {
-		return errors.Wrap(err, "main:updatePlatformInfo() Error while serializing platform info")
-	}
-
-	_, err = f.Write(b)
+	_, err = f.Write(hostInfoJSON)
 	if err != nil {
 		return errors.Wrapf(err, "main:updatePlatformInfo() Error while writing into File: %s", constants.PlatformInfoFilePath)
 	}
 
-	log.Info("main:updatePlatformInfo() Successfully updated platform-info")
+	log.Debug("main:updatePlatformInfo() Successfully updated platform-info")
 	return nil
 }
 
@@ -372,6 +385,21 @@ func main() {
 	switch cmd {
 	case "--version":
 		printVersion()
+	case "hostinfo":
+
+		if currentUser.Username != constants.RootUserName {
+			fmt.Printf("'tagent hostinfo' must be run as root, not user '%s'\n", currentUser.Username)
+			os.Exit(1)
+		}
+
+		hostInfoJSON, err := getHostInfoJSON()
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(string(hostInfoJSON))
+
 	case "init":
 
 		//
