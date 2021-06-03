@@ -7,11 +7,11 @@ package constants
 import "time"
 
 const (
-	InstallationDir                 = "/opt/trustagent/"
+	InstallationDir            = "/home/root/tmp/trustagent/"
 	ConfigDir                       = InstallationDir + "configuration/"
 	ConfigFilePath                  = ConfigDir + "config.yml"
 	BinDir                          = InstallationDir + "bin/"
-	LogDir                          = "/var/log/trustagent/"
+	LogDir                     = "/home/root/tmp/log/trustagent/"
 	HttpLogFile                     = LogDir + "http.log"
 	DefaultLogFilePath              = LogDir + "trustagent.log"
 	SecurityLogFilePath             = LogDir + "trustagent-security.log"
@@ -32,7 +32,7 @@ const (
 	Tpm2FilePath                    = "/sys/firmware/acpi/tables/TPM2"
 	AppEventFilePath                = RamfsDir + "pcr_event_log"
 	RootUserName                    = "root"
-	TagentUserName                  = "tagent"
+	TagentUserName             = "root"
 	DefaultPort                     = 1443
 	FlavorUUIDs                     = "FLAVOR_UUIDS"
 	DefaultLogEntryMaxlength        = 300

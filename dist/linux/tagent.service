@@ -7,13 +7,13 @@ After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/opt/trustagent/bin
-ExecStart=/opt/trustagent/bin/tagent startService
+WorkingDirectory=/usr/bin/trustagent
+ExecStart=/usr/bin/trustagent/tagent startService
 ExecStop=/bin/kill -s HUP $MAINPID
 TimeoutStartSec=45
 Restart=on-failure
 PermissionsStartOnly=true
-User=tagent
+
 
 [Install]
 WantedBy=multi-user.target

@@ -1,12 +1,10 @@
 [Unit]
 Description=TrustAgent Initialization
-Wants=docker.service
-After=docker.service
 
 [Service]
 Type=oneshot
-WorkingDirectory=/opt/trustagent/bin
-ExecStart=/opt/trustagent/bin/tagent init
+WorkingDirectory=/usr/bin/trustagent
+ExecStart=/usr/bin/trustagent/tagent init
 
 [Install]
 WantedBy=multi-user.target
