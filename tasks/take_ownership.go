@@ -32,6 +32,11 @@ func (task *TakeOwnership) Run(c setup.Context) error {
 
 	if *task.ownerSecretKey == nil {
 
+		// If TPM_OWNER_SECRET was omitted from the answer file/env, then
+		// the expecation is that the user wants the Trust-Agent to generate
+		// an owner-secret.  This requires that the TPM is clear and/or has
+		// an empty string for the owner password.
+
 		emptyOwner, err := tpm.IsOwnedWithAuth("")
 		if err != nil {
 			return errors.Wrap(err, "Runtime error while checking the empty owner-secret")
@@ -47,22 +52,64 @@ func (task *TakeOwnership) Run(c setup.Context) error {
 
 			err = tpm.TakeOwnership(newSecretKey)
 			if err != nil {
-				return errors.Wrap(err, "Error while performing tpm takeownership operation")
+				return errors.Wrap(err, "Error performing takeownership with the generated owner-secret")
 			}
 
 			*task.ownerSecretKey = &newSecretKey
 
 		} else {
-			return errors.New("The TPM must be in a clear state to take-ownerhsip with a new owner-secret")
-		}
-	} else {
-		owned, err := tpm.IsOwnedWithAuth(**task.ownerSecretKey)
-		if err != nil {
-			return errors.Wrap(err, "Runtime error while checking the owner-secret")
+			return errors.New("The TPM must be in a clear state for take-ownerhsip to generate a new owner-secret")
 		}
 
-		if !owned {
-			return errors.New("The owner-secret could not be used to access the TPM.")
+	} else {
+
+		// The TPM_OWNER_SECRET was provided in the answer file/env and could be
+		// empty ("") or any string value.  There are three conditions to handle...
+		//
+		// - The TPM's owner-secret has been previously set and the customer has provided
+		//   it in the TPM_OWNER_SECRET.  'IsOwnedWithAuth(TPM_OWNER_SECRET)' will return true
+		//   and provisioning should successfully complete (i.e., the owner-secret
+		//   password has owner access to the TPM).
+		// - The TPM is in a clear state (the empty password can be used for owner access)
+		//   and the user provided the value of TPM_OWNER_SECRET -- they want take-ownership
+		//   using that value.  In this case, 'IsOwnedWithAuth(TPM_OWNER_SECRET)' will
+		//   return false but 'IsOwnedWithAuth("")' will return true (and the Trust-Agent
+		//   can take-ownership with the provide owner-secret).  TPM provisioning should
+		//   be successfull.
+		// - The TPM is NOT clear and and the user provided the value of TPM_OWNER_SECRET.
+		//   'IsOwnedWithAuth(TPM_OWNER_SECRET)' will return false and so will 'IsOwnedWithAuth("")'.
+		//   TPM provisioning will fail because the wrong password has been provided.
+		// - The provided secret is empty:  The customer doesn't want to take-ownership
+		//   and expects the provisioning to succeed.  If the TPM can be access with the
+		//   empty password then TPM provisioning should succeed (otherwise it will fail
+		//   because the password is different).
+		//
+		owned, err := tpm.IsOwnedWithAuth(**task.ownerSecretKey)
+		if err != nil {
+			return errors.Wrap(err, "Runtime error while checking the provided owner-secret")
+		}
+
+		if !owned && **task.ownerSecretKey == "" {
+
+			return errors.New("The empty ownership password was provided but the TPM is not in a clear state")
+
+		} else if !owned {
+
+			fmt.Println("take-ownership: Attempting to take-ownership with the provided owner-secret")
+
+			owned, err := tpm.IsOwnedWithAuth("")
+			if err != nil {
+				return errors.Wrap(err, "Runtime error while checking the owner-secret")
+			}
+
+			if !owned {
+				return errors.New("The TPM must be in a clear state for take-ownerhsip with the provided owner-secret")
+			}
+
+			err = tpm.TakeOwnership(**task.ownerSecretKey)
+			if err != nil {
+				return errors.Wrap(err, "Error performing takeownership with the provided owner-secret")
+			}
 		}
 	}
 

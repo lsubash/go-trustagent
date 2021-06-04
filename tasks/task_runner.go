@@ -54,16 +54,9 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	}
 
 	//
-	// There are three possible states to the TPM_OWNER_SECRET env var...
-	// 1.) Not in env.  take-ownership should generate a new secret and attempt
-	//     to take ownerhsip of the TPM (pass nil pointer to take-ownerhsip task).
-	// 2.) In env but empty.  This is valid for customers that have cleared the TPM
-	//     but don't want to take-ownership with a secret (pass the empty string so
-	//     take-ownership can verify that empty-auth can access the TPM).
-	// 3.) In env and not empty.  The customer has already taken ownership of TPM and
-	//     has provided the password in TPM_OWNER_SECRET.  Similar to #2, pass the
-	//     string into take-ownership and return an error if it can't be used to
-	//     access the TPM.
+	// Lookup the TPM_OWNER_SECRET env variable.  If it is not present,
+	// pass 'nil' to support logic in take-ownership (i.e., to differentiate
+	// between the empty password "").
 	//
 	envSecret, exists := os.LookupEnv(constants.EnvTPMOwnerSecret)
 	if exists {

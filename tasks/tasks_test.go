@@ -72,8 +72,9 @@ func TestTakeOwnershipNilSecretClearTPM(t *testing.T) {
 }
 
 // If the owner-secret is nil (not defined in answer file) and the
-// TPM is not in a clear state, expect take-ownership to fail because
-// the default, empty password can't get owner access.
+// TPM is not in a clear state (it has a different password), expect
+// take-ownership to fail because the default, empty password can't
+// gain owner access.
 func TestTakeOwnershipNilSecretNotClearTPM(t *testing.T) {
 
 	// mock a "not cleared" TPM (i.e., that fails when "" is used for
@@ -114,7 +115,7 @@ func TestTakeOwnershipEmptySecretClearTPM(t *testing.T) {
 	}
 
 	if *results != ownerSecret {
-		t.Fatalf("The owner-secret was not generated")
+		t.Fatalf("The owner-secret was changed")
 	}
 }
 
@@ -141,9 +142,9 @@ func TestTakeOwnershipEmptySecretNotClearTPM(t *testing.T) {
 	t.Log(err)
 }
 
-// If the owner-secret is provided  (TPM_OWNER_SECRET="xyz") and
-// the TPM is clear, the task should fail because the provided
-// secret can't access the TPM.
+// If the owner-secret is provided (TPM_OWNER_SECRET="xyz") and
+// the TPM is clear, expect the task to take-ownership of the TPM
+// using the owner-secret.
 func TestTakeOwnershipProvidedSecretClearTPM(t *testing.T) {
 
 	// mock "clear" TPM
@@ -158,13 +159,16 @@ func TestTakeOwnershipProvidedSecretClearTPM(t *testing.T) {
 	ownerSecret := string(TpmSecretKey)
 	results := &ownerSecret
 	err := runTakeOwnership(t, mockedTpmFactory, &results)
-	if err == nil {
-		t.Fatalf("The unit test expected take-ownership to fail")
+	if err != nil {
+		t.Fatal(err) // unexpected
 	}
 
+	if *results != ownerSecret {
+		t.Fatalf("The owner-secret was changed")
+	}
 }
 
-// If the empty password is provided (TPM_OWNER_SECRET="xyz") and
+// If the owner-secret is provided (TPM_OWNER_SECRET="xyz") and
 // the TPM is owned with that password, expect take-ownership to be
 // successful.
 func TestTakeOwnershipProvidedSecretThatOwnsTPM(t *testing.T) {
@@ -185,7 +189,7 @@ func TestTakeOwnershipProvidedSecretThatOwnsTPM(t *testing.T) {
 	}
 
 	if *results != ownerSecret {
-		t.Fatalf("The owner-secret was not generated")
+		t.Fatalf("The owner-secret was changed")
 	}
 }
 
