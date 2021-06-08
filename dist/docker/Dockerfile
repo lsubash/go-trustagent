@@ -5,10 +5,6 @@ FROM centos:8
 
 RUN yum install -y tpm2-tss dmidecode redhat-lsb-core sudo
 
-COPY dist/linux/module_analysis.sh /tmp/
-COPY dist/linux/module_analysis_da.sh /tmp/
-COPY dist/linux/module_analysis_da_tcg.sh /tmp/
-
 COPY out/tagent /usr/bin/tagent
 COPY dist/docker/entrypoint.sh /
 

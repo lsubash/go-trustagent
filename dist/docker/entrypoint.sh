@@ -28,10 +28,6 @@ if [ ! -f $CONFIG_DIR/.setup_done ]; then
     chmod g+s $directory
   done
 
-  mv /tmp/module_analysis.sh $PRODUCT_BIN_DIR/  && chmod +x $PRODUCT_BIN_DIR/module_analysis.sh
-  mv /tmp/module_analysis_da.sh $PRODUCT_BIN_DIR/ && chmod +x $PRODUCT_BIN_DIR/module_analysis_da.sh
-  mv /tmp/module_analysis_da_tcg.sh $PRODUCT_BIN_DIR/ && chmod +x $PRODUCT_BIN_DIR/module_analysis_da_tcg.sh
-
   tagent setup all
   if [ $? -ne 0 ]; then
     exit 1
