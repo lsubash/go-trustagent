@@ -65,7 +65,7 @@ func (task *DownloadCredential) Run(c setup.Context) error {
 	}
 
 	params := types.Parameters{
-		HostId: &task.hostId,
+		TaHostId: &task.hostId,
 	}
 	createCredntialReq := types.CreateCredentialsReq{
 		ComponentType: constants.TAServiceName,
