@@ -10,6 +10,7 @@ PRODUCT_BIN_DIR=$PRODUCT_HOME_DIR/bin
 CONFIG_DIR=$PRODUCT_HOME_DIR/configuration
 CA_CERTS_DIR=$PRODUCT_HOME_DIR/configuration/cacerts
 CERTDIR_TRUSTEDJWTCERTS=$PRODUCT_HOME_DIR/configuration/jwt
+CREDENTIALS_DIR=$CONFIG_DIR/credentials
 
 if [ -z "$SAN_LIST" ]; then
   cp /etc/hostname /proc/sys/kernel/hostname
@@ -17,8 +18,12 @@ if [ -z "$SAN_LIST" ]; then
   echo $SAN_LIST
 fi
 
+if [ $TA_SERVICE_MODE == "outbound" ]; then
+  export TA_HOST_ID=$(hostname)
+fi
+
 if [ ! -f $CONFIG_DIR/.setup_done ]; then
-  for directory in $PRODUCT_BIN_DIR $CA_CERTS_DIR $CERTDIR_TRUSTEDJWTCERTS; do
+  for directory in $PRODUCT_BIN_DIR $CA_CERTS_DIR $CERTDIR_TRUSTEDJWTCERTS $CREDENTIALS_DIR; do
     mkdir -p $directory
     if [ $? -ne 0 ]; then
       echo "Cannot create directory: $directory"
