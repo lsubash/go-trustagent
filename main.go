@@ -172,15 +172,8 @@ Available Tasks for 'setup', all commands support env file flag
 }
 
 func getHostInfoJSON() ([]byte, error) {
-	hostInfoParser, err := hostinfo.NewHostInfoParser()
-	if err != nil {
-		return nil, fmt.Errorf("Error creating host-info parser: %v", err)
-	}
 
-	hostInfo, err := hostInfoParser.Parse()
-	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing host-info")
-	}
+	hostInfo := hostinfo.NewHostInfoParser().Parse()
 
 	// serialize to json
 	hostInfoJSON, err := json.MarshalIndent(hostInfo, "", "  ")
