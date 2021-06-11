@@ -676,6 +676,9 @@ func sourceEnvFile(trustagentEnvFile string) {
 		}
 		if strings.Contains(scanner.Text(), "=") {
 			envKeyPair = strings.Split(scanner.Text(), "=")
+			envKeyPair[1] = strings.TrimFunc(envKeyPair[1], func(r rune) bool {
+				return r == '"' || r == '\''
+			})
 			err = os.Setenv(envKeyPair[0], envKeyPair[1])
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Unable to set env: %s", envKeyPair[0])

@@ -6,11 +6,10 @@ package tasks
 
 import (
 	"fmt"
-	"intel/isecl/lib/common/v4/setup"
-	"intel/isecl/lib/tpmprovider/v4"
-
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/crypt"
 	"github.com/pkg/errors"
+	"intel/isecl/lib/common/v4/setup"
+	"intel/isecl/lib/tpmprovider/v4"
 )
 
 type TakeOwnership struct {
@@ -33,7 +32,7 @@ func (task *TakeOwnership) Run(c setup.Context) error {
 	if *task.ownerSecretKey == nil {
 
 		// If TPM_OWNER_SECRET was omitted from the answer file/env, then
-		// the expecation is that the user wants the Trust-Agent to generate
+		// the expectation is that the user wants the Trust-Agent to generate
 		// an owner-secret.  This requires that the TPM is clear and/or has
 		// an empty string for the owner password.
 
