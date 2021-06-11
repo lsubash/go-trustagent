@@ -82,8 +82,7 @@ TRUSTAGENT_BIN_DIR=$TRUSTAGENT_HOME/bin
 TRUSTAGENT_LOG_DIR=/var/log/trustagent
 TRUSTAGENT_CFG_DIR=$TRUSTAGENT_HOME/configuration
 TRUSTAGENT_VAR_DIR=$TRUSTAGENT_HOME/var/
-TRUSTAGENT_YUM_PACKAGES="tpm2-tss-2.0.0-4.el8.x86_64 dmidecode compat-openssl10 logrotate redhat-lsb-core"
-TBOOT_DEPENDENCY="tboot-1.9.*"
+TRUSTAGENT_YUM_PACKAGES="tpm2-tss-2.0.0-4.el8.x86_64 logrotate"
 
 #--------------------------------------------------------------------------------------------------
 # 1. Script prerequisites

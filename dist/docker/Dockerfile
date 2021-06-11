@@ -3,7 +3,7 @@
 
 FROM centos:8
 
-RUN yum install -y tpm2-tss dmidecode redhat-lsb-core sudo
+RUN yum install -y tpm2-tss
 
 COPY out/tagent /usr/bin/tagent
 COPY dist/docker/entrypoint.sh /
