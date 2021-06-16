@@ -63,7 +63,7 @@ func (evtLogFile *EventLogFiles) GetEventLogs() ([]PcrEventLog, error) {
 	var finalPcrEventLog []PcrEventLog
 	uefiEventLogs, err := getUefiEventLog(evtLogFile.Tpm2FilePath, evtLogFile.DevMemFilePath)
 	if err != nil {
-		log.WithError(err).Error("eventlog/event_log:GetEventLogs() There was an error while getting UEFI Event Log")
+		log.WithError(err).Warn("eventlog/event_log:GetEventLogs() There was an error while getting UEFI Event Log")
 	} else {
 		// Add all Uefi event log data in final Event Log Array
 		finalPcrEventLog = append(finalPcrEventLog, uefiEventLogs...)
@@ -71,7 +71,7 @@ func (evtLogFile *EventLogFiles) GetEventLogs() ([]PcrEventLog, error) {
 
 	txtEventLogs, err := getTxtEventLog(evtLogFile.DevMemFilePath, TxtHeapBaseOffset, TxtHeapSizeOffset)
 	if err != nil {
-		log.WithError(err).Error("eventlog/event_log:GetEventLogs() There was an error while getting TXT Event Log")
+		log.WithError(err).Warn("eventlog/event_log:GetEventLogs() There was an error while getting TXT Event Log")
 	} else {
 		// Add all TXT event log data in final Event Log Array
 		finalPcrEventLog = append(finalPcrEventLog, txtEventLogs...)
@@ -79,7 +79,7 @@ func (evtLogFile *EventLogFiles) GetEventLogs() ([]PcrEventLog, error) {
 
 	appEventLogs, err := getAppEventLog(evtLogFile.AppEventFilePath)
 	if err != nil {
-		log.WithError(err).Error("eventlog/event_log:GetEventLogs() There was an error while getting Application Event Log")
+		log.WithError(err).Warn("eventlog/event_log:GetEventLogs() There was an error while getting Application Event Log")
 	} else {
 		// Add all Application event log data in final Event Log Array
 		finalPcrEventLog = append(finalPcrEventLog, appEventLogs...)
