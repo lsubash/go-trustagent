@@ -230,7 +230,7 @@ function generate_rhel8_menuentry()
 	DEFAULT_INITRAMFS="initramfs-`uname -r`.img"
 	echo "Default initframs is $DEFAULT_INITRAMFS"
 
-	RHEL8_DEFAULT_MENUENTRY=`grep -l "initrd \/$DEFAULT_INITRAMFS" /boot/loader/entries/*conf | xargs -L 1 basename | tail -1`
+	RHEL8_DEFAULT_MENUENTRY=`grep -l "initrd .*$DEFAULT_INITRAMFS" /boot/loader/entries/*conf | xargs -L 1 basename | tail -1`
         echo "Found default menu entry file $RHEL8_DEFAULT_MENUENTRY in /boot/loader/entries"
 
 	# create a copy of the default boot entry in /opt/tbootxm that will be updated.
