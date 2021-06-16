@@ -184,8 +184,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 			fmt.Printf("Log level set %s\n", ll)
 			dirty = true
 		}
-	} else {
-		fmt.Printf("There was an error retrieving the log level from %s", constants.EnvTALogLevel)
 	}
 
 	if cfg.Logging.LogLevel == "" {
