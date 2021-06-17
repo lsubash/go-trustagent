@@ -32,7 +32,7 @@ func (handler *requestHandlerImpl) DeploySoftwareManifest(manifest *taModel.Mani
 	}
 
 	if len(manifest.Label) == 0 {
-		log.Errorf("The manifest did not contain a label")
+		log.Error("The manifest did not contain a label")
 		return &EndpointError{Message: "Error: The manifest did not contain a label", StatusCode: http.StatusBadRequest}
 	}
 
@@ -46,7 +46,7 @@ func (handler *requestHandlerImpl) DeploySoftwareManifest(manifest *taModel.Mani
 
 	if strings.Contains(manifest.Label, flavorConsts.DefaultSoftwareFlavorPrefix) ||
 		strings.Contains(manifest.Label, flavorConsts.DefaultWorkloadFlavorPrefix) {
-		log.Infof("common/deploy_manifest:DeploySoftwareManifest() Default flavor's manifest (%s) is part of installation, no need to deploy default flavor's manifest", manifest.Label)
+		log.Errorf("common/deploy_manifest:DeploySoftwareManifest() Default flavor's manifest (%s) is part of installation, no need to deploy default flavor's manifest", manifest.Label)
 		return &EndpointError{Message: " Default flavor's manifest (%s) is part of installation", StatusCode: http.StatusBadRequest}
 	}
 

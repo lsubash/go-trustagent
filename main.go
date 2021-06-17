@@ -207,7 +207,7 @@ func updatePlatformInfo() error {
 	defer func() {
 		derr := f.Close()
 		if derr != nil {
-			log.WithError(derr).Error("Error closing file")
+			log.WithError(derr).Warn("Error closing file")
 		}
 	}()
 
@@ -224,7 +224,7 @@ func updateMeasureLog() error {
 	log.Trace("main:updateMeasureLog() Entering")
 	defer log.Trace("main:updateMeasureLog() Leaving")
 
-	secLog.Infof("%s main:updateMeasureLog() Running code to read EventLog", message.SU)
+	secLog.Debugf("%s main:updateMeasureLog() Running code to read EventLog", message.SU)
 	evParser := eventlog.NewEventLogParser(constants.EventLogFilePath, constants.Tpm2FilePath, constants.AppEventFilePath)
 	pcrEventLogs, err := evParser.GetEventLogs()
 	if err != nil {
@@ -243,7 +243,7 @@ func updateMeasureLog() error {
 	defer func() {
 		derr := jsonReport.Close()
 		if derr != nil {
-			log.WithError(derr).Errorf("main:updateMeasureLog() There was an error closing %s", constants.MeasureLogFilePath)
+			log.WithError(derr).Warnf("main:updateMeasureLog() There was an error closing %s", constants.MeasureLogFilePath)
 		}
 	}()
 
@@ -253,9 +253,9 @@ func updateMeasureLog() error {
 	}
 
 	if pcrEventLogs != nil {
-		log.Info("main:updateMeasureLog() Successfully updated measure-log.json")
+		log.Debug("main:updateMeasureLog() Successfully updated measure-log.json")
 	} else {
-		log.Info("main:updateMeasureLog() No events are there to update measure-log.json")
+		log.Debug("main:updateMeasureLog() No events are there to update measure-log.json")
 	}
 
 	return nil
@@ -332,7 +332,7 @@ func uninstall() error {
 	if _, err := os.Stat(constants.InstallationDir); err == nil {
 		err = os.RemoveAll(constants.InstallationDir)
 		if err != nil {
-			log.Errorf("main:uninstall() An error occurred removing the trustagent files: %s", err)
+			log.WithError(err).Warnf("main:uninstall() An error occurred removing the trustagent files: %s", err)
 		}
 	}
 
@@ -342,7 +342,7 @@ func uninstall() error {
 	if _, err := os.Stat(constants.LogDir); err == nil {
 		err = os.RemoveAll(constants.LogDir)
 		if err != nil {
-			log.Errorf("main:uninstall() An error occurred removing the trustagent log files: %s", err)
+			log.WithError(err).Warnf("main:uninstall() An error occurred removing the trustagent log files: %s", err)
 		}
 	}
 
@@ -413,12 +413,12 @@ func main() {
 
 		err = updatePlatformInfo()
 		if err != nil {
-			log.Errorf("main:main() Error while creating platform-info: %s\n", err.Error())
+			log.WithError(err).Warn("main:main() Error while creating platform-info")
 		}
 
 		err = updateMeasureLog()
 		if err != nil {
-			log.Errorf("main:main() Error while creating measure-log.json: %s\n", err.Error())
+			log.WithError(err).Warn("main:main() Error while creating measure-log.json")
 		}
 
 		// tagent container is run as root user, skip user look up for tagent when run as a container
@@ -450,8 +450,7 @@ func main() {
 			//log.Infof("Owning file %s", fileName)
 			err = os.Chown(fileName, int(uid), int(gid))
 			if err != nil {
-				log.Errorf("main:main() Could not own file '%s'", fileName)
-				return err
+				return errors.Wrapf(err, "main:main() Could not own file '%s'", fileName)
 			}
 
 			return nil
@@ -460,8 +459,7 @@ func main() {
 		_ = filepath.Walk(constants.LogDir, func(fileName string, info os.FileInfo, err error) error {
 			err = os.Chown(fileName, int(uid), int(gid))
 			if err != nil {
-				log.Errorf("main:main() Could not own file '%s'", fileName)
-				return err
+				return errors.Wrapf(err, "main:main() Could not own file '%s'", fileName)
 			}
 
 			return nil
@@ -486,17 +484,17 @@ func main() {
 
 			subscriber, err := outbound.NewHVSSubscriber(requestHandler, cfg)
 			if err != nil {
-				log.Errorf("Error creating the HVS subscriber: %+v", err)
+				log.WithError(err).Warn("Error creating the HVS subscriber")
 			}
 
 			if subscriber == nil {
-				log.Errorf("main:main() Error: could not initialize hvs subscriber")
+				log.Error("main:main() Error: could not initialize hvs subscriber")
 				os.Exit(1)
 			}
 
 			err = subscriber.Start()
 			if err != nil {
-				log.Errorf("main:main() Error while starting nats client: %+v", err)
+				log.WithError(err).Error("main:main() Error while starting nats client")
 				os.Exit(1)
 			}
 
@@ -505,13 +503,13 @@ func main() {
 			// create and start webservice
 			service, err := resource.NewTrustAgentHttpService(requestHandler, cfg)
 			if err != nil {
-				log.Errorf("main:main() Error while creating trustagent service %+v", err)
+				log.WithError(err).Error("main:main() Error while creating trustagent service")
 				os.Exit(1)
 			}
 
 			err = service.Start()
 			if err != nil {
-				log.Errorf("main:main() Error while starting trustagent service %+v", err)
+				log.WithError(err).Error("main:main() Error while starting trustagent service")
 				os.Exit(1)
 			}
 
@@ -571,7 +569,7 @@ func main() {
 				if len(os.Args) > 3 {
 					sourceEnvFile(os.Args[3])
 				} else {
-					log.Errorf("main:main() 'tagent setup' -f used but no filename given")
+					log.Error("main:main() 'tagent setup' -f used but no filename given")
 					os.Exit(1)
 				}
 			} else {
@@ -600,21 +598,21 @@ func main() {
 		runner, err := tasks.CreateTaskRunner(setupCommand, cfg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while creating task runner \n Error: %s\n", err.Error())
-			log.Errorf("main:main() Error while creating task runner %+v", err)
+			log.WithError(err).Error("main:main() Error while creating task runner")
 			os.Exit(1)
 		}
 
 		err = runner.RunTasks()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while running setup Command %s, \n Error: %s\n ", setupCommand, err.Error())
-			log.Errorf("main:main() Error while running setup Command %s, %+v", setupCommand, err)
+			log.WithError(err).Errorf("main:main() Error while running setup Command %s", setupCommand)
 			os.Exit(1)
 		}
 		// always update the cofig.yaml regardless of error (so TPM owner/aik are persisted)
 		err = cfg.Save()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while saving configuration, \n Error: %s\n ", err.Error())
-			log.Errorf("main:main() Error while saving configuration, %+v", err)
+			log.WithError(err).Error("main:main() Error while saving configuration")
 			os.Exit(1)
 		}
 
@@ -664,7 +662,7 @@ func sourceEnvFile(trustagentEnvFile string) {
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Error("Error closing file")
+			log.WithError(derr).Warn("Error closing file")
 		}
 	}()
 

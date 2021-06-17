@@ -127,7 +127,7 @@ func (service *TrustAgentService) Start() error {
 		defer func() {
 			derr := httpLogFile.Close()
 			if derr != nil {
-				log.WithError(derr).Error("Error closing file")
+				log.WithError(derr).Warn("Error closing file")
 			}
 		}()
 		httpWriter = httpLogFile
@@ -163,6 +163,7 @@ func (service *TrustAgentService) Start() error {
 	}()
 	secLog.Info(message.ServiceStart)
 	secLog.Infof("TrustAgent service is running: %d", service.port)
+	log.Infof("TrustAgent service is running: %d", service.port)
 
 	<-stop
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -187,7 +188,7 @@ func requiresPermission(eh endpointHandler, permissionNames []string) endpointHa
 			w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 			_, writeErr := w.Write([]byte("Could not get user roles from http context"))
 			if writeErr != nil {
-				log.WithError(writeErr).Error("resource/service:requiresPermission() Error while writing response")
+				log.WithError(writeErr).Warn("resource/service:requiresPermission() Error while writing response")
 			}
 			secLog.Errorf("resource/service:requiresPermission() %s Roles: %v | Context: %v", message.AuthenticationFailed, permissionNames, r.Context())
 			return errors.Wrap(err, "resource/service:requiresPermission() Could not get user roles from http context")
@@ -202,7 +203,7 @@ func requiresPermission(eh endpointHandler, permissionNames []string) endpointHa
 			return &privilegeError{Message: "Insufficient privileges to access " + r.RequestURI, StatusCode: http.StatusUnauthorized}
 		}
 		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-		secLog.Infof("resource/service:requiresPermission() %s - %s", message.AuthorizedAccess, r.RequestURI)
+		secLog.Debugf("resource/service:requiresPermission() %s - %s", message.AuthorizedAccess, r.RequestURI)
 		return eh(w, r)
 	}
 }

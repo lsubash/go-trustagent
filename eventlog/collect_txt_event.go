@@ -67,7 +67,7 @@ func getTxtEventLog(devMemFilePath string, txtHeapBaseOffset int64, txtHeapSizeO
 		if mmap != nil {
 			derr := syscall.Munmap(mmap)
 			if derr != nil {
-				log.WithError(derr).Error(derr, "eventlog/collect_txt_event:getTxtEventLog() There was an error while unmapping TXT Heap Data")
+				log.WithError(derr).Warn(derr, "eventlog/collect_txt_event:getTxtEventLog() There was an error while unmapping TXT Heap Data")
 			}
 		}
 	}()
@@ -82,7 +82,7 @@ func getTxtEventLog(devMemFilePath string, txtHeapBaseOffset int64, txtHeapSizeO
 	// Read OsSinitData (Table 22. OS to SINIT Data Table) at HeapBase+BiosDataSize+OsMleDataSize+8
 	osSinitVersion := binary.LittleEndian.Uint32(mmap[biosDataSize+osMleDataSize+Uint64Size:])
 	if osSinitVersion >= 6 {
-		log.Infof("eventlog/collect_txt_event:getTxtEventLog() OSInitData.Version = %d", osSinitVersion)
+		log.Debugf("eventlog/collect_txt_event:getTxtEventLog() OSInitData.Version = %d", osSinitVersion)
 	} else {
 		return nil, errors.New("eventlog/collect_txt_event:getTxtEventLog() OSInitData.Version was less than 6")
 	}

@@ -382,7 +382,7 @@ void calculateDirHashUtil(char *dir_path, char *include, char *exclude, regex_t 
 	log_debug("dir path : %s", dir_name_buff);
 	retval = doesDirExist(dir_name_buff);
 	if (retval == 0) {
-		log_info("Mounted dir path for dir %s is %s", dir_path, dir_name_buff);
+		log_debug("Mounted dir path for dir %s is %s", dir_path, dir_name_buff);
 
 		/*How the process works: 
 		1. Open the dir pointed by dir_name_buff
@@ -398,7 +398,7 @@ void calculateDirHashUtil(char *dir_path, char *include, char *exclude, regex_t 
 
 		fprintf(fq, "<Dir Exclude=\"%s\" Include=\"%s\" Path=\"%s\">", exclude, include, dir_path);
 		fprintf(fq, "%s</Dir>", output);
-		log_info("Dir : %s Hash Measured : %s", dir_path, output);
+		log_debug("Dir : %s Hash Measured : %s", dir_path, output);
 	}
 }
 
@@ -413,7 +413,7 @@ void calculateFileHashUtil(char *file_path, FILE *fq) {
     log_debug("file path : %s",file_name_buff);
     retval = doesFileExist(file_name_buff);
     if( retval == 0 ) {
-		log_info("Mounted file path for file %s is %s",file_path,file_name_buff);
+		log_debug("Mounted file path for file %s is %s",file_path,file_name_buff);
    
 	    /*How the process works: 
         1. Open the file pointed by file_name_buff
@@ -432,7 +432,7 @@ void calculateFileHashUtil(char *file_path, FILE *fq) {
 
 		fprintf(fq,"<File Path=\"%s\">",file_path);
 		fprintf(fq,"%s</File>", output);
-		log_info("File : %s Hash Measured : %s",file_path,output);
+		log_debug("File : %s Hash Measured : %s",file_path,output);
     }
 }
 
@@ -447,7 +447,7 @@ void calculateSymlinkHashUtil(char *sym_path, FILE *fq) {
     log_debug("symlink path : %s", file_name_buff);
     retval = getSymLinkValue(file_name_buff);
     if( retval == 0 ) {
-        log_info("Target file path for symlink %s is %s",sym_path,file_name_buff);
+        log_debug("Target file path for symlink %s is %s",sym_path,file_name_buff);
 
         /*How the process works:
         1. Concatenate source path and target path
@@ -460,6 +460,6 @@ void calculateSymlinkHashUtil(char *sym_path, FILE *fq) {
 		
 		fprintf(fq,"<Symlink Path=\"%s\">",sym_path);
 		fprintf(fq,"%s</Symlink>", output);
-        log_info("Symlink : %s Hash Measured : %s",sym_path,output);
+        log_debug("Symlink : %s Hash Measured : %s",sym_path,output);
     }
 }

@@ -73,6 +73,6 @@ func (task *ProvisionPrimaryKey) Validate(c setup.Context) error {
 	}
 
 	// assume valid if error did not occur during 'Run'
-	log.Info("tasks/provision_primary_key:Validate() Provisioning the primary key was successful.")
+	log.Debug("tasks/provision_primary_key:Validate() Provisioning the primary key was successful.")
 	return nil
 }

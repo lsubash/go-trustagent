@@ -26,7 +26,7 @@ func GetPrivacyCA() (*rsa.PublicKey, error) {
 
 	if privacyCAInstance == nil {
 		if _, err := os.Stat(constants.PrivacyCA); os.IsNotExist(err) {
-			return nil, err
+			return nil, errors.Wrapf(err, "File %s does not exist", constants.PrivacyCA)
 		}
 
 		privacyCaBytes, err := ioutil.ReadFile(constants.PrivacyCA)

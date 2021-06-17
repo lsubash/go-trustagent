@@ -6,7 +6,6 @@ package common
 
 import (
 	"encoding/pem"
-	"fmt"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"io/ioutil"
 	"os"
@@ -30,12 +29,12 @@ func (handler *requestHandlerImpl) GetAikDerBytes() ([]byte, error) {
 
 func getAikPem() ([]byte, error) {
 	if _, err := os.Stat(constants.AikCert); os.IsNotExist(err) {
-		return nil, fmt.Errorf("AIK %s does not exist", constants.AikCert)
+		return nil, errors.Wrapf(err, "AIK %s does not exist", constants.AikCert)
 	}
 
 	aikPem, err := ioutil.ReadFile(constants.AikCert)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading aik: %+v", err)
+		return nil, errors.Wrap(err, "Error reading aik")
 	}
 
 	return aikPem, nil

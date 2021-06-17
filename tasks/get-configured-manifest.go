@@ -37,7 +37,7 @@ func (task GetConfiguredManifest) saveManifest(manifestXml []byte) error {
 
 	if strings.Contains(manifest.Label, flavorConsts.DefaultSoftwareFlavorPrefix) ||
 		strings.Contains(manifest.Label, flavorConsts.DefaultWorkloadFlavorPrefix) {
-		log.Infof("tasks/get-configured-manifest:saveManifest() Default flavor's manifest (%s) is part of installation, no need to deploy default flavor's manifest", manifest.Label)
+		log.Debugf("tasks/get-configured-manifest:saveManifest() Default flavor's manifest (%s) is part of installation, no need to deploy default flavor's manifest", manifest.Label)
 		return nil
 	}
 
@@ -141,7 +141,7 @@ func (task *GetConfiguredManifest) Validate(c setup.Context) error {
 
 	for _, manifestFile := range task.savedManifestFiles {
 		if _, err := os.Stat(manifestFile); os.IsNotExist(err) {
-			log.Errorf("tasks/get-configured-manifest:Validate() Could not validate manifest '%s' was created", manifestFile)
+			log.Warnf("tasks/get-configured-manifest:Validate() Could not validate manifest '%s' was created", manifestFile)
 			missing = true
 		}
 	}
@@ -150,6 +150,6 @@ func (task *GetConfiguredManifest) Validate(c setup.Context) error {
 		return errors.New("One or more manifest files were not created.")
 	}
 
-	log.Info("tasks/get-configured-manifest:Validate() Get configured manifest was successful.")
+	log.Debug("tasks/get-configured-manifest:Validate() Get configured manifest was successful.")
 	return nil
 }

@@ -85,7 +85,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 	//---------------------------------------------------------------------------------------------
 	readTimeout, err := c.GetenvInt(constants.EnvTAServerReadTimeout, "Trustagent Read Timeout")
 	if err != nil {
-		log.Info("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerReadTimeout, "setting default value 30s")
+		log.Debug("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerReadTimeout, "setting default value 30s")
 		(*task.cfg).WebService.ReadTimeout = constants.DefaultReadTimeout
 	} else {
 		(*task.cfg).WebService.ReadTimeout = time.Duration(readTimeout) * time.Second
@@ -93,7 +93,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 
 	readHeaderTimeout, err := c.GetenvInt(constants.EnvTAServerReadHeaderTimeout, "Trustagent Read Header Timeout")
 	if err != nil {
-		log.Info("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerReadHeaderTimeout, ", setting default value 10s")
+		log.Debug("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerReadHeaderTimeout, ", setting default value 10s")
 		(*task.cfg).WebService.ReadHeaderTimeout = constants.DefaultReadHeaderTimeout
 	} else {
 		(*task.cfg).WebService.ReadHeaderTimeout = time.Duration(readHeaderTimeout) * time.Second
@@ -101,7 +101,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 
 	writeTimeout, err := c.GetenvInt(constants.EnvTAServerWriteTimeout, "Trustagent Write Timeout")
 	if err != nil {
-		log.Info("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerWriteTimeout, "setting default value 10s")
+		log.Debug("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerWriteTimeout, "setting default value 10s")
 		(*task.cfg).WebService.WriteTimeout = constants.DefaultWriteTimeout
 	} else {
 		(*task.cfg).WebService.WriteTimeout = time.Duration(writeTimeout) * time.Second
@@ -109,7 +109,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 
 	idleTimeout, err := c.GetenvInt(constants.EnvTAServerIdleTimeout, "Trustagent Idle Timeout")
 	if err != nil {
-		log.Info("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerIdleTimeout, ", setting default value 10s")
+		log.Debug("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerIdleTimeout, ", setting default value 10s")
 		(*task.cfg).WebService.IdleTimeout = constants.DefaultIdleTimeout
 	} else {
 		(*task.cfg).WebService.IdleTimeout = time.Duration(idleTimeout) * time.Second
@@ -117,7 +117,7 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 
 	maxHeaderBytes, err := c.GetenvInt(constants.EnvTAServerMaxHeaderBytes, "Trustagent Max Header Bytes Timeout")
 	if err != nil {
-		log.Info("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerMaxHeaderBytes, ", setting default value 10s")
+		log.Debug("config/config:LoadEnvironmentVariables() could not parse the variable ", constants.EnvTAServerMaxHeaderBytes, ", setting default value 10s")
 		(*task.cfg).WebService.MaxHeaderBytes = constants.DefaultMaxHeaderBytes
 	} else {
 		(*task.cfg).WebService.MaxHeaderBytes = maxHeaderBytes
@@ -143,6 +143,6 @@ func (task *UpdateServiceConfig) Validate(c setup.Context) error {
 		return errors.Errorf("The Trust-Agent service requires that the configuration contains a valid port number: '%d'", (*task.cfg).WebService.Port)
 	}
 
-	log.Info("tasks/update_service_config:Validate() update_service_config task was successful")
+	log.Debug("tasks/update_service_config:Validate() update_service_config task was successful")
 	return nil
 }

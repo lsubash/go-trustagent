@@ -62,7 +62,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	if exists {
 		ownerSecret = &envSecret
 	} else {
-		log.Infof("The TPM_OWNER_SECRET environment variable is not defined.")
+		log.Debug("The TPM_OWNER_SECRET environment variable is not defined.")
 	}
 
 	switch setupCmd {

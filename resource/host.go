@@ -31,7 +31,7 @@ func getPlatformInfo(requestHandler common.RequestHandler) endpointHandler {
 
 		hostInfo, err := requestHandler.GetHostInfo()
 		if err != nil {
-			log.Errorf("resource/host:getPlatformInfo() %s - There was an error reading %s", message.AppRuntimeErr, constants.PlatformInfoFilePath)
+			log.WithError(err).Errorf("resource/host:getPlatformInfo() %s - There was an error reading %s", message.AppRuntimeErr, constants.PlatformInfoFilePath)
 			return &common.EndpointError{Message: "Error processing request", StatusCode: http.StatusInternalServerError}
 		}
 

@@ -17,7 +17,7 @@ FILE *formatManifestXml(char *manifest_xml, FILE *fd) {
 
 	char Cmd_Str[MAX_CMD_LEN] = {'\0'};
 	snprintf(Cmd_Str, sizeof(Cmd_Str), "echo '%s' | xmllint --format -", manifest_xml);
-	log_info("********manifest_xml is ---------- %s and command is %s",manifest_xml,Cmd_Str);
+	log_debug("********manifest_xml is ---------- %s and command is %s",manifest_xml,Cmd_Str);
 	
 	fd = popen(Cmd_Str,"r");
 	return fd;

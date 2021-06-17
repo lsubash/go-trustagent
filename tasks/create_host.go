@@ -94,6 +94,6 @@ func (task *CreateHost) Validate(c setup.Context) error {
 		return errors.Errorf("Host with ip '%s' was not created", currentIP.String())
 	}
 
-	log.Info("tasks/create_host:Validate() Create host setup task was successful.")
+	log.Debug("tasks/create_host:Validate() Create host setup task was successful.")
 	return nil
 }

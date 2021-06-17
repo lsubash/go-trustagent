@@ -20,7 +20,7 @@ func (handler *requestHandlerImpl) GetBindingCertificateDerBytes() ([]byte, erro
 
 	bindingKeyBytes, err := ioutil.ReadFile(constants.BindingKeyCertificatePath)
 	if err != nil {
-		log.Errorf("common/binding_key_certificate:getBindingKeyCertificate() %s - Error reading %s", message.AppRuntimeErr, constants.BindingKeyCertificatePath)
+		log.WithError(err).Errorf("common/binding_key_certificate:getBindingKeyCertificate() %s - Error reading %s", message.AppRuntimeErr, constants.BindingKeyCertificatePath)
 		return nil, &EndpointError{Message: "Error processing request", StatusCode: http.StatusInternalServerError}
 
 	}

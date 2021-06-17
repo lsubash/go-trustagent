@@ -75,7 +75,7 @@ func NewConfigFromYaml(pathToYaml string) (*TrustAgentConfiguration, error) {
 		defer func() {
 			derr := file.Close()
 			if derr != nil {
-				log.WithError(derr).Error("Error closing file")
+				log.WithError(derr).Warn("Error closing file")
 			}
 		}()
 		err = yaml.NewDecoder(file).Decode(&c)
@@ -119,7 +119,7 @@ func (cfg *TrustAgentConfiguration) Save() error {
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Error("Error closing file")
+			log.WithError(derr).Warn("Error closing file")
 		}
 	}()
 	secLog.Info(message.ConfigChanged)

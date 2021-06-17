@@ -346,7 +346,7 @@ func createMeasureLog(buf *bytes.Buffer, size uint32, pcrEventLogs []PcrEventLog
 					if txtEnabled == false {
 						eventData[index].Tags, err = getEventTag(tcgPcrEvent2.EventType, tcgPcrEvent2.Event, tcgPcrEvent2.EventSize, tcgPcrEvent2.PcrIndex)
 						if err != nil {
-							log.WithError(err).Errorf("eventlog/common:createMeasureLog() There is an error in getting Event Tag. PcrIndex = %x, EventType = %x", tcgPcrEvent2.PcrIndex, tcgPcrEvent2.EventType)
+							log.WithError(err).Warnf("eventlog/common:createMeasureLog() There is an error in getting Event Tag. PcrIndex = %x, EventType = %x", tcgPcrEvent2.PcrIndex, tcgPcrEvent2.EventType)
 						}
 					} else {
 						if eventData[hashIndex].TypeName != "" {

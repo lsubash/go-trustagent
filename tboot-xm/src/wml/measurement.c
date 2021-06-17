@@ -46,7 +46,7 @@ void calculateSymlinkHash(char *line, FILE *fq) {
 
     if (getTagValue(line, "Path=")) {
 		strcpy_s(sym_path,sizeof(sym_path),node_value);
-		log_info("Symlink : %s",node_value);
+		log_debug("Symlink : %s",node_value);
 	}
 
 	if (strcmp(sym_path, "") == 0) {
@@ -89,7 +89,7 @@ void calculateFileHash(char *line, FILE *fq) {
 
 	if (getTagValue(line, "Path=")) {
 		strcpy_s(file_path,sizeof(file_path),node_value);
-		log_info("File : %s",node_value);
+		log_debug("File : %s",node_value);
 	}
 	
 	if (strcmp(file_path, "") == 0) {
@@ -137,7 +137,7 @@ void calculateDirHash(char *line, FILE *fq) {
     
     if (getTagValue(line, "Path=")) {
 		strcpy_s(dir_path,sizeof(dir_path),node_value);
-		log_info("Directory : %s",node_value);
+		log_debug("Directory : %s",node_value);
 	}
 	
 	if (strcmp(dir_path, "") == 0) {
@@ -147,7 +147,7 @@ void calculateDirHash(char *line, FILE *fq) {
 
 	if (getTagValue(line, "FilterType=")) {
 		strcpy_s(filter_type,sizeof(filter_type),node_value);
-		log_info("FilterType : %s",node_value);
+		log_debug("FilterType : %s",node_value);
 		if(strcmp(filter_type, "wildcard") == 0) {
 			is_wildcard = 1;
 		}
@@ -155,12 +155,12 @@ void calculateDirHash(char *line, FILE *fq) {
 
 	if (getTagValue(line, "Include=")) {
 		strcpy_s(include,sizeof(include),node_value);
-		log_info("Include : %s",node_value);
+		log_debug("Include : %s",node_value);
 		if (strcmp(include, "") != 0) {
 			if (is_wildcard == 1) {
 				convertWildcardToRegex(include);
 				strcpy_s(include,sizeof(include),node_value);
-				log_info("Include type in regex_format : %s",node_value);
+				log_debug("Include type in regex_format : %s",node_value);
 			}
 			if (regcomp(&reginc, include, REG_EXTENDED | REG_NOSUB)) {
 				log_warn("Not a valid regex. Skipping measurement...");
@@ -171,12 +171,12 @@ void calculateDirHash(char *line, FILE *fq) {
 
     if (getTagValue(line, "Exclude=")) {
 		strcpy_s(exclude,sizeof(exclude),node_value);
-		log_info("Exclude : %s",node_value);
+		log_debug("Exclude : %s",node_value);
 		if (strcmp(exclude, "") != 0) {
 			if (is_wildcard == 1) {
 				convertWildcardToRegex(exclude);
 				strcpy_s(exclude,sizeof(exclude),node_value);
-				log_info("Exclude type in regex_format : %s",node_value);
+				log_debug("Exclude type in regex_format : %s",node_value);
 			}
 			if (regcomp(&regexc, exclude, REG_EXTENDED | REG_NOSUB)) {
 				log_warn("Not a valid regex. Skipping measurement...");
@@ -257,7 +257,7 @@ int generateMeasurementLogs(FILE *fp, char *mountPath) {
 	}
 	//Read Manifest to get list of files to hash
 	while (fgets(line, len, fp) != NULL) {
-		log_info("Line Read : %s", line);
+		log_debug("Line Read : %s", line);
 		if(feof(fp)) {
 			log_debug("End of file found");
 		    break;
@@ -287,7 +287,7 @@ int generateMeasurementLogs(FILE *fp, char *mountPath) {
 				goto final;
 			}
 
-			log_info("Type of Hash used : %s",hashType);
+			log_debug("Type of Hash used : %s",hashType);
 			log_debug("Size of Hash used : %d",cumulative_hash_len);
 			replaceAllStr(line, "Manifest", "Measurement");
 			replaceAllStr(line, "manifest", "measurement");
@@ -319,7 +319,7 @@ int generateMeasurementLogs(FILE *fp, char *mountPath) {
 	}
 
 	bin2hex(cumulative_hash, cumulative_hash_len, cumulativeHash, sizeof(cumulativeHash));
-	log_info("Cumulative Hash : %s", cumulativeHash);
+	log_debug("Cumulative Hash : %s", cumulativeHash);
 	fprintf(fq, "<CumulativeHash>%s</CumulativeHash>", cumulativeHash);
 	fprintf(fq, "</Measurement>");
 
@@ -340,8 +340,8 @@ char* measure(char *manifest_xml, char *mount_path) {
 		return NULL;
 	}
 
-    log_info("MANIFEST-XMl : %s", manifest_xml);
-    log_info("MOUNTED-PATH : %s", mount_path);
+    log_debug("MANIFEST-XMl : %s", manifest_xml);
+    log_debug("MOUNTED-PATH : %s", mount_path);
 
 	manifest_fp = formatManifestXml(manifest_xml, manifest_fp);
 	if (manifest_fp == NULL) {
@@ -376,7 +376,7 @@ char* measure(char *manifest_xml, char *mount_path) {
 		goto final;
 	}
 
-	log_info("MEASUREMENT-XMl : %s", measurement_xml);
+	log_debug("MEASUREMENT-XMl : %s", measurement_xml);
 
 final:
 	fclose(log_fp);

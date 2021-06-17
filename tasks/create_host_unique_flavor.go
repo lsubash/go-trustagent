@@ -55,6 +55,6 @@ func (task *CreateHostUniqueFlavor) Validate(c setup.Context) error {
 	defer log.Trace("tasks/create_host_unique_flavor:Validate() Leaving")
 
 	// no validation is currently implemented (i.e. as long as Run did not fail)
-	log.Info("tasks/create_host_unique_flavor:Validate() Create host unique flavor was successful.")
+	log.Debug("tasks/create_host_unique_flavor:Validate() Create host unique flavor was successful.")
 	return nil
 }

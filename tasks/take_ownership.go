@@ -142,6 +142,6 @@ func (task *TakeOwnership) Validate(c setup.Context) error {
 		return errors.New("The tpm is not owned with the current secret key")
 	}
 
-	log.Info("tasks/take_ownership:Validate() Take ownership was successful.")
+	log.Debug("tasks/take_ownership:Validate() Take ownership was successful.")
 	return nil
 }

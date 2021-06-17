@@ -30,7 +30,7 @@ func getAik(requestHandler common.RequestHandler) endpointHandler {
 
 		aikDer, err := requestHandler.GetAikDerBytes()
 		if err != nil {
-			log.Errorf("resource/aik:getAik() %s - There was an error reading %s", message.AppRuntimeErr, constants.AikCert)
+			log.WithError(err).Errorf("resource/aik:getAik() %s - There was an error reading %s", message.AppRuntimeErr, constants.AikCert)
 			return &common.EndpointError{Message: "Unable to fetch AIK certificate", StatusCode: http.StatusInternalServerError}
 		}
 

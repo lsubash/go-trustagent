@@ -51,6 +51,6 @@ func (task *DownloadPrivacyCA) Validate(c setup.Context) error {
 		return err
 	}
 
-	log.Info("tasks/download_privacy_ca:Validate() Download PrivacyCA was successful")
+	log.Debug("tasks/download_privacy_ca:Validate() Download PrivacyCA was successful")
 	return nil
 }

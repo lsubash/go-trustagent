@@ -92,13 +92,11 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 
 	privacyCaCert, err := util.GetPrivacyCA()
 	if err != nil {
-		log.WithError(err).Error("tasks/provision_aik:Run() Error while retrieving privacyca certificate")
 		return errors.Wrap(err, "Error while retrieving privacyca certificate")
 	}
 
 	privacyca, err := privacyca.NewPrivacyCA(identityChallengeRequest.IdentityRequest)
 	if err != nil {
-		log.WithError(err).Error("tasks/provision_aik:Run() Unable to get new privacyca instance")
 		return errors.Wrap(err, "Unable to get new privacyca instance")
 	}
 
@@ -120,7 +118,7 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "tasks/provision_aik:Run() Error while performing activate credential")
 	}
-	log.Info("tasks/provision_aik:Run() Activate credential is successful for identity challenge request")
+	log.Debug("tasks/provision_aik:Run() Activate credential is successful for identity challenge request")
 
 	// create an IdentityChallengeResponse to send back to HVS
 	identityChallengeResponse := taModel.IdentityChallengePayload{}
@@ -147,7 +145,7 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 		return errors.Wrap(err, "Failed to activate credential")
 	}
 
-	log.Info("tasks/provision_aik:Run() Activate credential is successful for identity challenge response")
+	log.Debug("tasks/provision_aik:Run() Activate credential is successful for identity challenge response")
 
 	// make sure the decrypted bytes are a valid certificates...
 	_, err = x509.ParseCertificate(decrypted2)
@@ -178,7 +176,7 @@ func (task *ProvisionAttestationIdentityKey) Validate(c setup.Context) error {
 		return errors.Wrap(err, "The aik certificate was not created")
 	}
 
-	log.Info("tasks/provision_aik:Validate() Provisioning the AIK was successful.")
+	log.Debug("tasks/provision_aik:Validate() Provisioning the AIK was successful.")
 	return nil
 }
 
@@ -320,8 +318,6 @@ func (task *ProvisionAttestationIdentityKey) activateCredential(identityProofReq
 	//
 	// Now decrypt the symetric key using ActivateCredential
 	//
-	log.Info("Now decrypt the symetric key using ActivateCredential")
-
 	symmetricKey, err := tpm.ActivateCredential(**task.ownerSecretKey, credentialBytes, secretBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error while performing tpm activate credential operation")

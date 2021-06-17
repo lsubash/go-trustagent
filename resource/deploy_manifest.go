@@ -31,7 +31,7 @@ func deployManifest(requestHandler common.RequestHandler) endpointHandler {
 		// receive a manifest from hvs in the request body
 		manifestXml, err := ioutil.ReadAll(httpRequest.Body)
 		if err != nil {
-			log.Errorf("resource/deploy_manifest:deployManifest() Error reading manifest xml: %s", err)
+			log.WithError(err).Errorf("resource/deploy_manifest:deployManifest() Error reading manifest xml")
 			return &common.EndpointError{Message: "Error reading manifest xml", StatusCode: http.StatusBadRequest}
 		}
 
@@ -39,7 +39,7 @@ func deployManifest(requestHandler common.RequestHandler) endpointHandler {
 		manifest := taModel.Manifest{}
 		err = xml.Unmarshal(manifestXml, &manifest)
 		if err != nil {
-			log.Errorf("resource/deploy_manifest:deployManifest() Invalid xml format: %s", err)
+			secLog.WithError(err).Error("resource/deploy_manifest:deployManifest() Invalid xml format")
 			return &common.EndpointError{Message: "Error: Invalid xml format", StatusCode: http.StatusBadRequest}
 		}
 

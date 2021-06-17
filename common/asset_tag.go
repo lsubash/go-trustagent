@@ -19,7 +19,7 @@ func (handler *requestHandlerImpl) DeployAssetTag(tagWriteRequest *taModel.TagWr
 
 	err := validation.ValidateHardwareUUID(tagWriteRequest.HardwareUUID)
 	if err != nil {
-		log.Errorf("common/asset_tag:DeployAssetTag( %s - Invalid hardware_uuid '%s'", message.InvalidInputBadParam, tagWriteRequest.HardwareUUID)
+		log.WithError(err).Errorf("common/asset_tag:DeployAssetTag( %s - Invalid hardware_uuid '%s'", message.InvalidInputBadParam, tagWriteRequest.HardwareUUID)
 		return &EndpointError{Message: "Invalid hardware_uuid", StatusCode: http.StatusBadRequest}
 	}
 

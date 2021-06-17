@@ -3,15 +3,14 @@ package outbound
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
-	"intel/isecl/go-trust-agent/v4/constants"
-	"strings"
-	"time"
-
+	"github.com/pkg/errors"
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
+	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/go-trust-agent/v4/util"
+	"strings"
+	"time"
 
 	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
 	cos "github.com/intel-secl/intel-secl/v4/pkg/lib/common/os"
@@ -60,12 +59,12 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 
 	certs, err := cos.GetDirFileContents(constants.TrustedCaCertsDir, "*.pem")
 	if err != nil {
-		log.Errorf("Failed to append %q to RootCAs: %v", constants.TrustedCaCertsDir, err)
+		log.WithError(err).Errorf("Failed to append %q to RootCAs", constants.TrustedCaCertsDir)
 	}
 
 	for _, rootCACert := range certs {
 		if ok := rootCAs.AppendCertsFromPEM(rootCACert); !ok {
-			log.Info("No certs appended, using system certs only")
+			log.Debug("No certs appended, using system certs only")
 		}
 	}
 
@@ -86,12 +85,12 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 		}))
 
 	if err != nil {
-		return fmt.Errorf("Failed to connect to url %q: %+v", subscriber.cfg.Nats.Servers, err)
+		return errors.Wrapf(err, "Failed to connect to url %q", subscriber.cfg.Nats.Servers)
 	}
 
 	subscriber.natsConnection, err = nats.NewEncodedConn(conn, "json")
 	if err != nil {
-		log.Error(err)
+		log.WithError(err).Error("Error while wrapping an existing NATS connection to utilize the encoded connection")
 	}
 
 	log.Infof("Successfully connected to %q", subscriber.cfg.Nats.Servers)
@@ -103,7 +102,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(quoteSubject, func(subject string, reply string, quoteRequest *taModel.TpmQuoteRequest) {
 		quoteResponse, err := subscriber.handler.GetTpmQuote(quoteRequest)
 		if err != nil {
-			log.Errorf("Failed to handle quote-request: %+v", err)
+			log.WithError(err).Error("Failed to handle quote-request")
 		}
 
 		subscriber.natsConnection.Publish(reply, quoteResponse)
@@ -114,7 +113,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(hostInfoSubject, func(m *nats.Msg) {
 		hostInfo, err := subscriber.handler.GetHostInfo()
 		if err != nil {
-			log.Errorf("Failed to handle quote-request: %+v", err)
+			log.WithError(err).Error("Failed to handle quote-request")
 		}
 
 		subscriber.natsConnection.Publish(m.Reply, hostInfo)
@@ -125,7 +124,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(aikSubject, func(m *nats.Msg) {
 		aik, err := subscriber.handler.GetAikDerBytes()
 		if err != nil {
-			log.Errorf("Failed to handle aik-request: %+v", err)
+			log.WithError(err).Error("Failed to handle aik-request")
 		}
 
 		subscriber.natsConnection.Publish(m.Reply, aik)
@@ -136,7 +135,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(deployTagSubject, func(subject string, reply string, tagWriteRequest *taModel.TagWriteRequest) {
 		err := subscriber.handler.DeployAssetTag(tagWriteRequest)
 		if err != nil {
-			log.Errorf("Failed to handle deploy-asset-tag: %+v", err)
+			log.WithError(err).Error("Failed to handle deploy-asset-tag")
 		}
 
 		subscriber.natsConnection.Publish(reply, "")
@@ -147,7 +146,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(bkSubject, func(m *nats.Msg) {
 		bk, err := subscriber.handler.GetBindingCertificateDerBytes()
 		if err != nil {
-			log.Errorf("Failed to handle get-binding-certificate: %+v", err)
+			log.WithError(err).Error("Failed to handle get-binding-certificate")
 		}
 
 		subscriber.natsConnection.Publish(m.Reply, bk)
@@ -158,7 +157,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(deployManifestSubject, func(subject string, reply string, manifest *taModel.Manifest) {
 		err = subscriber.handler.DeploySoftwareManifest(manifest)
 		if err != nil {
-			log.Errorf("Failed to handle deploy-manifest: %+v", err)
+			log.WithError(err).Error("Failed to handle deploy-manifest")
 		}
 
 		subscriber.natsConnection.Publish(reply, "")
@@ -169,7 +168,7 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(applicationMeasurementSubject, func(subject string, reply string, manifest *taModel.Manifest) {
 		measurement, err := subscriber.handler.GetApplicationMeasurement(manifest)
 		if err != nil {
-			log.Errorf("Failed to handle application-measurement-request: %+v", err)
+			log.WithError(err).Error("Failed to handle application-measurement-request")
 		}
 
 		subscriber.natsConnection.Publish(reply, measurement)
@@ -180,15 +179,15 @@ func (subscriber *hvsSubscriberImpl) Start() error {
 	subscriber.natsConnection.Subscribe(versionSubject, func(m *nats.Msg) {
 		versionInfo, err := util.GetVersionInfo()
 		if err != nil {
-			log.Errorf("Failed to handle version-request: %+v", err)
+			log.WithError(err).Error("Failed to handle version-request")
 		}
 
 		subscriber.natsConnection.Publish(m.Reply, versionInfo)
 	})
 
+	log.Infof("Running Trust-Agent %s...", subscriber.natsHostID)
 	// KWT:  This needs to block but not log repetive messages...
 	for {
-		log.Infof("Running Trust-Agent %s...", subscriber.natsHostID)
 		time.Sleep(10 * time.Second)
 	}
 

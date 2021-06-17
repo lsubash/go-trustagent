@@ -100,6 +100,6 @@ func (task *DefineTagIndex) Validate(c setup.Context) error {
 		return errors.New("The asset tag nvram index was not created")
 	}
 
-	log.Info("'define-tag-index' completed successfully.")
+	log.Debug("'define-tag-index' completed successfully.")
 	return nil
 }

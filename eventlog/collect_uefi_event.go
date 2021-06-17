@@ -33,7 +33,7 @@ func getUefiEventLog(tpm2FilePath string, devMemFilePath string) ([]PcrEventLog,
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Errorf("eventlog/collect_uefi_event:getUefiEventLog() There was an error closing %s", tpm2FilePath)
+			log.WithError(derr).Warnf("eventlog/collect_uefi_event:getUefiEventLog() There was an error closing %s", tpm2FilePath)
 		}
 	}()
 
@@ -119,7 +119,7 @@ func readUefiEvent(devMemFilePath string, uefiEventSize uint32, uefiEventAddr ui
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Errorf("eventlog/collect_uefi_event:readUefiEvent() There was an error closing %s", devMemFilePath)
+			log.WithError(derr).Warnf("eventlog/collect_uefi_event:readUefiEvent() There was an error closing %s", devMemFilePath)
 		}
 	}()
 

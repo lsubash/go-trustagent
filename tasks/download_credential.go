@@ -48,14 +48,12 @@ func (task *DownloadCredential) Run(c setup.Context) error {
 
 	caCerts, err := crypt.GetCertsFromDir(constants.TrustedCaCertsDir)
 	if err != nil {
-		log.WithError(err).Errorf("tasks/download_credential:Run() Error while reading certs from %s", constants.TrustedCaCertsDir)
-		return err
+		return errors.Wrapf(err, "tasks/download_credential:Run() Error while reading certs from %s", constants.TrustedCaCertsDir)
 	}
 
 	client, err := clients.HTTPClientWithCA(caCerts)
 	if err != nil {
-		log.WithError(err).Error("tasks/download_credential:Run() Error while creating http client")
-		return err
+		return errors.Wrapf(err, "tasks/download_credential:Run() Error while creating http client")
 	}
 
 	aasClient := aas.Client{
@@ -94,6 +92,6 @@ func (task *DownloadCredential) Validate(c setup.Context) error {
 		return errors.Errorf("%s file does not exist", constants.NatsCredentials)
 	}
 
-	log.Info("tasks/download_credential:Validate() download-credentials setup task was successful.")
+	log.Debug("tasks/download_credential:Validate() download-credentials setup task was successful.")
 	return nil
 }
