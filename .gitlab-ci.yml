@@ -47,8 +47,7 @@ test:
 stylechecker:
   stage: scan
   only:
-    - master
-    - /^v.*\/develop.*$/
+    - merge_requests
   image: golang:1.14
   tags:
     - go
@@ -62,8 +61,7 @@ stylechecker:
 checkmarx:
   stage: scan
   only:
-    - master
-    - /^v.*\/develop.*$/
+    - merge_requests
   allow_failure: true
   image:
     name: ${DOCKER_REGISTRY_SERVER}:${DOCKER_REGISTRY_PORT}/checkmarx:isecl

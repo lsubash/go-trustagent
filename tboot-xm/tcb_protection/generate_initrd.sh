@@ -48,11 +48,9 @@ update_config() {
 change_permissions() {
 	echo "***Changing file permissions***"
 	chmod 755 $INITRAMFS_HOOKS_DIR/tcb
-	dos2unix $INITRAMFS_HOOKS_DIR/tcb
 
     	chmod 755 $INITRAMFS_SCRIPTS_DIR/local-premount/measure_host
-    	dos2unix $INITRAMFS_SCRIPTS_DIR/local-premount/measure_host
-	
+
 	chmod 755 $TBOOTXM_BIN/measure
 	chmod 700 $TBOOTXM_BIN/tpmextend
 	chmod 755 $TBOOTXM_LIB/libwml.so
@@ -265,13 +263,9 @@ function generate_initrd_redhat()
 	cp -r $TBOOTXM_LIB $redhat_mod_dir/$DRACUT_MODULE_DIR
 	#change the premission of files in dracut module
 	chmod 777 $redhat_mod_dir/$DRACUT_MODULE_DIR/check
-	dos2unix $redhat_mod_dir/$DRACUT_MODULE_DIR/check
 	chmod 777 $redhat_mod_dir/$DRACUT_MODULE_DIR/install
-	dos2unix $redhat_mod_dir/$DRACUT_MODULE_DIR/install
 	chmod 777 $redhat_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
-	dos2unix $redhat_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
 	chmod 777 $redhat_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
-	dos2unix $redhat_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
 	chmod 777 $redhat_mod_dir/$DRACUT_MODULE_DIR/bin/*
 
         cd $PREGENERATED_FILES
@@ -310,9 +304,7 @@ function generate_initrd_fedora()
         cp -r $TBOOTXM_LIB $fedora_mod_dir/$DRACUT_MODULE_DIR
         #change the premission of files in dracut module
 	chmod 777 $fedora_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
-	dos2unix $fedora_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
 	chmod 777 $fedora_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
-	dos2unix $fedora_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
 	chmod 777 $fedora_mod_dir/$DRACUT_MODULE_DIR/bin/*
 
 	cd $PREGENERATED_FILES
@@ -374,13 +366,9 @@ function generate_initrd_centos()
 	cp -r $TBOOTXM_LIB $centos_mod_dir/$DRACUT_MODULE_DIR
 	#change the premission of files in dracut module
 	chmod 777 $centos_mod_dir/$DRACUT_MODULE_DIR/check
-	dos2unix $centos_mod_dir/$DRACUT_MODULE_DIR/check
 	chmod 777 $centos_mod_dir/$DRACUT_MODULE_DIR/install
-	dos2unix $centos_mod_dir/$DRACUT_MODULE_DIR/install
 	chmod 777 $centos_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
-	dos2unix $centos_mod_dir/$DRACUT_MODULE_DIR/module-setup.sh
 	chmod 777 $centos_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
-	dos2unix $centos_mod_dir/$DRACUT_MODULE_DIR/measure_host.sh
 	chmod 777 $centos_mod_dir/$DRACUT_MODULE_DIR/bin/*
 
         cd $PREGENERATED_FILES
@@ -401,12 +389,11 @@ function prepare_mkinitrd()
 {
 	cp $TBOOTXM_BIN/measure_host /lib/mkinitrd/scripts/boot-measure_host.sh
         chmod +x /lib/mkinitrd/scripts/boot-measure_host.sh
-	dos2unix /lib/mkinitrd/scripts/boot-measure_host.sh
         set_os /lib/mkinitrd/scripts/boot-measure_host.sh "suse"
 	cp $MKINITRD_DIR/setup-measure_host.sh /lib/mkinitrd/scripts/setup-measure_host.sh
 	chmod +x /lib/mkinitrd/scripts/setup-measure_host.sh
-	dos2unix /lib/mkinitrd/scripts/setup-measure_host.sh
-        # copy the binaries to location
+
+  # copy the binaries to location
 	cp  $TBOOTXM_BIN/measure /bin/.
 	cp  $TBOOTXM_BIN/tpmextend /bin/.
 	cp  $TBOOTXM_LIB/libwml.so /lib/.

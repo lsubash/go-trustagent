@@ -57,8 +57,8 @@ if [ -z $UPGRADE ]; then
   echo "export TBOOTXM_BIN=$TBOOTXM_BIN" >> $TBOOTXM_ENV/tbootxm-layout
   echo "export TBOOTXM_LIB=$TBOOTXM_LIB" >> $TBOOTXM_ENV/tbootxm-layout
 
-  # make sure zip, unzip, dos2unix and perl are installed
-  TBOOTXM_YUM_PACKAGES="zip unzip dos2unix perl"
+  # make sure zip, unzip and perl are installed
+  TBOOTXM_YUM_PACKAGES="zip unzip perl"
   install_packages "TBOOTXM"
   if [ $? -ne 0 ]; then echo_failure "Failed to install prerequisites through package installer"; exit -1; fi
 fi

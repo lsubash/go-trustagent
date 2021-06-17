@@ -43,13 +43,13 @@ function install_pkg()
 	if [ $os_flavour == "ubuntu" ]
 	then
 		sudo -n apt-get update
-		sudo -n apt-get install --force-yes -y make gcc g++ libssl-dev dos2unix
+		sudo -n apt-get install --force-yes -y make gcc g++ libssl-dev
 	elif [ $os_flavour == "rhel" ] || [ $os_flavour == "fedora" ] || [ $os_flavour == "centos" ]
 	then
-		sudo -n yum install -y make libgcc gcc-c++ openssl-devel dos2unix
+		sudo -n yum install -y make libgcc gcc-c++ openssl-devel
 	elif [ $os_flavour == "suse" ]
 	then
-		sudo -n zypper -n in make gcc gcc-c++ libopenssl-devel dos2unix
+		sudo -n zypper -n in make gcc gcc-c++ libopenssl-devel
 	fi
 }
 function help_instruction()
