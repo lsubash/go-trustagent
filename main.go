@@ -220,20 +220,34 @@ func updatePlatformInfo() error {
 	return nil
 }
 
-func updateMeasureLog() error {
-	log.Trace("main:updateMeasureLog() Entering")
-	defer log.Trace("main:updateMeasureLog() Leaving")
+func getEventLogJSON() ([]byte, error) {
 
-	secLog.Debugf("%s main:updateMeasureLog() Running code to read EventLog", message.SU)
+	secLog.Debugf("%s main:getEventLogJSON() Running code to read EventLog", message.SU)
 	evParser := eventlog.NewEventLogParser(constants.EventLogFilePath, constants.Tpm2FilePath, constants.AppEventFilePath)
 	pcrEventLogs, err := evParser.GetEventLogs()
 	if err != nil {
-		return errors.Wrap(err, "main:updateMeasureLog() There was an error while collecting PCR Event Log Data")
+		return nil, errors.Wrap(err, "main:getEventLogJSON() There was an error while collecting PCR Event Log Data")
+	}
+
+	if pcrEventLogs == nil {
+		return nil, errors.New("main:getEventLogJSON() No event logs were collected")
 	}
 
 	jsonData, err := json.Marshal(pcrEventLogs)
 	if err != nil {
-		return errors.Wrap(err, "main:updateMeasureLog() There was an error while serializing PCR Event Log Data")
+		return nil, errors.Wrap(err, "main:getEventLogJSON() There was an error while serializing PCR Event Log Data")
+	}
+
+	return jsonData, nil
+}
+
+func updateMeasureLog() error {
+	log.Trace("main:updateMeasureLog() Entering")
+	defer log.Trace("main:updateMeasureLog() Leaving")
+
+	jsonData, err := getEventLogJSON()
+	if err != nil {
+		return err
 	}
 
 	jsonReport, err := os.OpenFile(constants.MeasureLogFilePath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
@@ -252,12 +266,7 @@ func updateMeasureLog() error {
 		return errors.Wrapf(err, "main:updateMeasureLog() There was an error while writing in %s", constants.MeasureLogFilePath)
 	}
 
-	if pcrEventLogs != nil {
-		log.Debug("main:updateMeasureLog() Successfully updated measure-log.json")
-	} else {
-		log.Debug("main:updateMeasureLog() No events are there to update measure-log.json")
-	}
-
+	log.Debug("main:updateMeasureLog() Successfully updated measure-log.json")
 	return nil
 }
 
@@ -392,6 +401,23 @@ func main() {
 		}
 
 		fmt.Println(string(hostInfoJSON))
+
+	case "eventlog":
+
+		if currentUser.Username != constants.RootUserName {
+			fmt.Printf("'tagent eventlog' must be run as root, not user '%s'\n", currentUser.Username)
+			os.Exit(1)
+		}
+
+		eventLogJSON, err := getEventLogJSON()
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(1)
+		}
+
+		var out bytes.Buffer
+		json.Indent(&out, eventLogJSON, "", "  ")
+		fmt.Println(string(out.Bytes()))
 
 	case "init":
 
