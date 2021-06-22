@@ -2,5 +2,4 @@
 <Manifest xmlns="lib:wml:measurements:1.0" Label="ISecL_Default_Workload_Flavor_v" Uuid="" DigestAlg="SHA384">
    <Dir Exclude="" FilterType="regex" Include=".*" Path="/opt/workload-agent/bin"/>
    <File Path="/opt/workload-agent/bin/wlagent"/>
-   <File Path="/opt/workload-agent/secure-docker-daemon/.*\.sh" SearchType="regex"/>
 </Manifest>
