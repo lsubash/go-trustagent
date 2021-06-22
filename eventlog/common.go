@@ -17,6 +17,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+// These variables can be used by integrators to override the default
+// behavior of event-log parsing.  By default, the file paths are empty
+// and the Trust-Agent will attempt to read event logs from /dev/mem.
+//
+// However, in some environments (ex. embedded linux), /dev/mem may not
+// be available.  In these scenarios, an integrator can compile the Trust-Agent
+// with go build flags and specify a file containing TCG event-log data.
+// For example...
+//    env CGO_CFLAGS_ALLOW="-f.*" go build -ldflags "-X intel/isecl/go-trust-agent/v4/eventlog.uefiEventLogFile=/tmp/myuefieventlogs.bin"
+var (
+	uefiEventLogFile = ""
+	txtEventLogFile  = ""
+)
+
 const (
 	Uint8Size            = 1
 	Uint16Size           = 2

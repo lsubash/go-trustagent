@@ -28,7 +28,7 @@ const (
 	MeasureLogFilePath         = VarDir + "measure-log.json"
 	BindingKeyCertificatePath  = "/etc/workload-agent/bindingkey.pem"
 	TBootXmMeasurePath         = "/opt/tbootxm/bin/measure"
-	EventLogFilePath           = "/dev/mem"
+	DevMemFilePath             = "/dev/mem"
 	Tpm2FilePath               = "/sys/firmware/acpi/tables/TPM2"
 	AppEventFilePath           = RamfsDir + "pcr_event_log"
 	RootUserName               = "root"

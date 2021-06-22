@@ -35,9 +35,13 @@ func Test_getAppEventLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := getAppEventLog(tt.args.appEventFilePath)
+			parser := appEventLogParser{
+				appEventFilePath: tt.args.appEventFilePath,
+			}
+
+			_, err := parser.GetEventLogs()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getAppEventLog() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("appEventLogParser.GetEventLogs() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

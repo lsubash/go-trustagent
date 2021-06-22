@@ -13,23 +13,26 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetAppEventLog - Function to get Application Event Log
-func getAppEventLog(appEventFilePath string) ([]PcrEventLog, error) {
-	log.Trace("eventlog/collect_application_event:getAppEventLog() Entering")
-	defer log.Trace("eventlog/collect_application_event:getAppEventLog() Leaving")
+type appEventLogParser struct {
+	appEventFilePath string
+}
 
-	if _, err := os.Stat(appEventFilePath); os.IsNotExist(err) {
-		return nil, errors.Wrapf(err, "eventlog/collect_application_event:getAppEventLog() %s file does not exist", appEventFilePath)
+func (parser *appEventLogParser) GetEventLogs() ([]PcrEventLog, error) {
+	log.Trace("eventlog/collect_application_event:GetEventLogs() Entering")
+	defer log.Trace("eventlog/collect_application_event:GetEventLogs() Leaving")
+
+	if _, err := os.Stat(parser.appEventFilePath); os.IsNotExist(err) {
+		return nil, errors.Wrapf(err, "eventlog/collect_application_event:GetEventLogs() %s file does not exist", parser.appEventFilePath)
 	}
 
-	file, err := os.Open(appEventFilePath)
+	file, err := os.Open(parser.appEventFilePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_application_event:getAppEventLog() There was an error opening %s", appEventFilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_application_event:GetEventLogs() There was an error opening %s", parser.appEventFilePath)
 	}
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Errorf("eventlog/collect_application_event:getAppEventLog() There was an error closing %s", appEventFilePath)
+			log.WithError(derr).Errorf("eventlog/collect_application_event:GetEventLogs() There was an error closing %s", parser.appEventFilePath)
 		}
 	}()
 

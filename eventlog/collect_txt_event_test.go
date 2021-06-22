@@ -68,7 +68,14 @@ func Test_getTxtEventLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := getTxtEventLog(tt.args.devMemFilePath, tt.args.txtHeapBaseOffset, tt.args.txtHeapSizeOffset)
+
+			parser := txtEventLogParser{
+				devMemFilePath:    tt.args.devMemFilePath,
+				txtHeapBaseOffset: tt.args.txtHeapBaseOffset,
+				txtHeapSizeOffset: tt.args.txtHeapSizeOffset,
+			}
+
+			_, err := parser.GetEventLogs()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getTxtEventLog() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -102,7 +102,13 @@ func Test_getUefiEventLog(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := getUefiEventLog(tt.args.tpm2FilePath, tt.args.devMemFilePath)
+
+			parser := uefiEventLogParser{
+				tpm2FilePath:   tt.args.tpm2FilePath,
+				devMemFilePath: tt.args.devMemFilePath,
+			}
+
+			_, err := parser.GetEventLogs()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getUefiEventLog() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -223,7 +223,7 @@ func updatePlatformInfo() error {
 func getEventLogJSON() ([]byte, error) {
 
 	secLog.Debugf("%s main:getEventLogJSON() Running code to read EventLog", message.SU)
-	evParser := eventlog.NewEventLogParser(constants.EventLogFilePath, constants.Tpm2FilePath, constants.AppEventFilePath)
+	evParser := eventlog.NewEventLogParser()
 	pcrEventLogs, err := evParser.GetEventLogs()
 	if err != nil {
 		return nil, errors.Wrap(err, "main:getEventLogJSON() There was an error while collecting PCR Event Log Data")

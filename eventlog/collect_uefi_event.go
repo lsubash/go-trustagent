@@ -13,8 +13,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetUefiEventLog - Function to get Uefi Events Log
-func getUefiEventLog(tpm2FilePath string, devMemFilePath string) ([]PcrEventLog, error) {
+type uefiEventLogParser struct {
+	tpm2FilePath   string
+	devMemFilePath string
+}
+
+func (parser *uefiEventLogParser) GetEventLogs() ([]PcrEventLog, error) {
 	log.Trace("eventlog/collect_uefi_event:getUefiEventLog() Entering")
 	defer log.Trace("eventlog/collect_uefi_event:getUefiEventLog() Leaving")
 
@@ -22,81 +26,81 @@ func getUefiEventLog(tpm2FilePath string, devMemFilePath string) ([]PcrEventLog,
 	tpm2len := make([]byte, Uint32Size)
 	uefiEventAddr := make([]byte, Uint64Size)
 	uefiEventSize := make([]byte, Uint32Size)
-	if _, err := os.Stat(tpm2FilePath); os.IsNotExist(err) {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() %s file does not exist", tpm2FilePath)
+	if _, err := os.Stat(parser.tpm2FilePath); os.IsNotExist(err) {
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() %s file does not exist", parser.tpm2FilePath)
 	}
 
-	file, err := os.Open(tpm2FilePath)
+	file, err := os.Open(parser.tpm2FilePath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error opening %s", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error opening %s", parser.tpm2FilePath)
 	}
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
-			log.WithError(derr).Warnf("eventlog/collect_uefi_event:getUefiEventLog() There was an error closing %s", tpm2FilePath)
+			log.WithError(derr).Warnf("eventlog/collect_uefi_event:GetEventLogs() There was an error closing %s", parser.tpm2FilePath)
 		}
 	}()
 
 	// Validate TPM2 file signature
 	_, err = io.ReadFull(file, tpm2Sig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading TPM2 Signature from %s", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error reading TPM2 Signature from %s", parser.tpm2FilePath)
 	}
 
 	tpm2Signature := string(tpm2Sig)
 	if Tpm2Signature != tpm2Signature {
-		return nil, errors.Errorf("eventlog/collect_uefi_event:getUefiEventLog() Invalid TPM2 Signature in %s", tpm2FilePath)
+		return nil, errors.Errorf("eventlog/collect_uefi_event:GetEventLogs() Invalid TPM2 Signature in %s", parser.tpm2FilePath)
 	}
 
 	// Validate TPM2 file length
 	_, err = io.ReadFull(file, tpm2len)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading TPM2 File Length from %s", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error reading TPM2 File Length from %s", parser.tpm2FilePath)
 	}
 
 	tpm2FileLength := binary.LittleEndian.Uint32(tpm2len)
 	if tpm2FileLength < Tpm2FileLength {
-		return nil, errors.Errorf("eventlog/collect_uefi_event:getUefiEventLog() UEFI Event Info missing in %s", tpm2FilePath)
+		return nil, errors.Errorf("eventlog/collect_uefi_event:GetEventLogs() UEFI Event Info missing in %s", parser.tpm2FilePath)
 	}
 
 	_, err = file.Seek(UefiBaseOffset, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error traversing %s for UEFI Event Base Offset", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error traversing %s for UEFI Event Base Offset", parser.tpm2FilePath)
 	}
 
 	_, err = io.ReadFull(file, uefiEventAddr)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading UEFI Event Address from %s", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error reading UEFI Event Address from %s", parser.tpm2FilePath)
 	}
 
 	_, err = file.Seek(UefiSizeOffset, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error traversing %s for UEFI Event Size Offset", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error traversing %s for UEFI Event Size Offset", parser.tpm2FilePath)
 	}
 
 	_, err = io.ReadFull(file, uefiEventSize)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading UEFI Event Size from %s", tpm2FilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error reading UEFI Event Size from %s", parser.tpm2FilePath)
 	}
 
 	uefiEventSizeLE := binary.LittleEndian.Uint32(uefiEventSize)
 	uefiEventAddrLE := binary.LittleEndian.Uint64(uefiEventAddr)
 
-	uefiEventBuf, err := readUefiEvent(devMemFilePath, uefiEventSizeLE, uefiEventAddrLE)
+	uefiEventBuf, err := readUefiEvent(parser.devMemFilePath, uefiEventSizeLE, uefiEventAddrLE)
 	if err != nil {
-		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading UEFI Event Log from %s", devMemFilePath)
+		return nil, errors.Wrapf(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error reading UEFI Event Log from %s", parser.devMemFilePath)
 	}
 
 	// Parse and skip TCG_PCR_EVENT(Intel TXT spec. ver. 16.2) from event-log buffer
 	realUefiEventBuf, realUefiEventSize, err := parseTcgSpecEvent(uefiEventBuf, uefiEventSizeLE)
 	if err != nil {
-		return nil, errors.Wrap(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error while parsing UEFI Event Log Data")
+		return nil, errors.Wrap(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error while parsing UEFI Event Log Data")
 	}
 
 	var uefiEventLogs []PcrEventLog
 	uefiEventLogs, err = createMeasureLog(realUefiEventBuf, realUefiEventSize, uefiEventLogs, false)
 	if err != nil {
-		return nil, errors.Wrap(err, "eventlog/collect_uefi_event:getUefiEventLog() There was an error while creating measure-log data for UEFI Events")
+		return nil, errors.Wrap(err, "eventlog/collect_uefi_event:GetEventLogs() There was an error while creating measure-log data for UEFI Events")
 	}
 
 	return uefiEventLogs, nil
