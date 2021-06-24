@@ -22,6 +22,9 @@ type DefineTagIndex struct {
 
 func (task *DefineTagIndex) Run(c setup.Context) error {
 
+	// by default, define and store an empty 'tag' that is stored in nvram.
+	newAssetTag := make([]byte, constants.TagIndexSize)
+
 	fmt.Println("Running setup task: deploy-asset-tag")
 
 	if task.ownerSecretKey == nil || *task.ownerSecretKey == nil {
@@ -44,9 +47,12 @@ func (task *DefineTagIndex) Run(c setup.Context) error {
 		return errors.New("The owner-secret provided cannot access the TPM.")
 	}
 
-	tagSecretKey, err := crypt.GetHexRandomString(20)
-	if err != nil {
-		return errors.Wrap(err, "Error while generating a tag-secret")
+	// if the tag-secret is not defined, create one
+	if *task.assetTagSecret == "" {
+		*task.assetTagSecret, err = crypt.GetHexRandomString(20)
+		if err != nil {
+			return errors.Wrap(err, "Error while generating a tag-secret")
+		}
 	}
 
 	// check if an asset tag does not exists...
@@ -55,8 +61,25 @@ func (task *DefineTagIndex) Run(c setup.Context) error {
 		return errors.Wrap(err, "Error checking if the tag index exists in nvram")
 	}
 
-	// if it exists, delete it so that it can be recreated
+	// If it exists, carry it forward so that trust-reports are still trusted...
 	if nvExists {
+
+		// read the existing asset tag
+		existingAssetTag, err := tpm.NvRead(**task.ownerSecretKey, tpmprovider.TPM2_RH_OWNER, tpmprovider.NV_IDX_ASSET_TAG)
+		if err != nil {
+			return errors.Wrap(err, "Failed to read existing asset tag")
+		}
+
+		// 48 is number of bytes of legacy tag (sha384)
+		if existingAssetTag == nil || len(existingAssetTag) != constants.TagIndexSize {
+			// we don't know what this is so just delete it.
+			log.Warn("The existing asset tag is invalid will not be migrated")
+		} else {
+			log.Info("Migrating asset tag")
+			copy(newAssetTag, existingAssetTag)
+		}
+
+		// delete old nvram index so that it can be recreated
 		err = tpm.NvRelease(**task.ownerSecretKey, tpmprovider.NV_IDX_ASSET_TAG)
 		if err != nil {
 			return errors.Wrap(err, "Error deleting the previous tag index from nvram")
@@ -64,19 +87,17 @@ func (task *DefineTagIndex) Run(c setup.Context) error {
 	}
 
 	// create an index for the tag
-	err = tpm.NvDefine(**task.ownerSecretKey, tagSecretKey, tpmprovider.NV_IDX_ASSET_TAG, constants.TagIndexSize)
+	err = tpm.NvDefine(**task.ownerSecretKey, *task.assetTagSecret, tpmprovider.NV_IDX_ASSET_TAG, constants.TagIndexSize)
 	if err != nil {
 		return errors.Wrap(err, "Error defining the tag index in nvram")
 	}
 
-	// basically do a "memset" on the tag index...
-	emptyTag := make([]byte, constants.TagIndexSize)
-	err = tpm.NvWrite(tagSecretKey, tpmprovider.NV_IDX_ASSET_TAG, tpmprovider.NV_IDX_ASSET_TAG, emptyTag)
+	// Either put back the existing asset tag or basically do a "memset" on the index
+	// so that common.RequestHandler can determine if the tag is empty or defined.
+	err = tpm.NvWrite(*task.assetTagSecret, tpmprovider.NV_IDX_ASSET_TAG, tpmprovider.NV_IDX_ASSET_TAG, newAssetTag)
 	if err != nil {
-		return errors.Wrap(err, "Error writing empty tag to nvram")
+		return errors.Wrap(err, "Error writing tag to nvram")
 	}
-
-	*task.assetTagSecret = tagSecretKey
 
 	return nil
 }

@@ -5,8 +5,6 @@
 package common
 
 import (
-	"bytes"
-	"encoding/binary"
 	"intel/isecl/lib/tpmprovider/v4"
 	"net/http"
 
@@ -48,14 +46,8 @@ func (handler *requestHandlerImpl) DeployAssetTag(tagWriteRequest *taModel.TagWr
 		return &EndpointError{Message: "The asset tag index does not exist", StatusCode: http.StatusInternalServerError}
 	}
 
-	// add the length of the tag to the bytes to be written.  The length field is stripped when
-	// read from nvram in resource/quote.go
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.LittleEndian, uint16(len(tagWriteRequest.Tag)))
-	buf.Write(tagWriteRequest.Tag)
-
-	// write the data
-	err = tpm.NvWrite(handler.cfg.Tpm.TagSecretKey, tpmprovider.NV_IDX_ASSET_TAG, tpmprovider.NV_IDX_ASSET_TAG, buf.Bytes())
+	// write the tag
+	err = tpm.NvWrite(handler.cfg.Tpm.TagSecretKey, tpmprovider.NV_IDX_ASSET_TAG, tpmprovider.NV_IDX_ASSET_TAG, tagWriteRequest.Tag)
 	if err != nil {
 		log.WithError(err).Errorf("common/asset_tag:DeployAssetTag() %s - Error writing asset tag", message.AppRuntimeErr)
 		return &EndpointError{Message: "Error processing request", StatusCode: http.StatusInternalServerError}

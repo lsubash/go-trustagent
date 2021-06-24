@@ -634,7 +634,8 @@ func main() {
 			log.WithError(err).Errorf("main:main() Error while running setup Command %s", setupCommand)
 			os.Exit(1)
 		}
-		// always update the cofig.yaml regardless of error (so TPM owner/aik are persisted)
+
+		// now that the tasks have completed successfully, save the config file
 		err = cfg.Save()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error while saving configuration, \n Error: %s\n ", err.Error())

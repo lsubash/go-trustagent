@@ -5,10 +5,8 @@
 package common
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"intel/isecl/go-trust-agent/v4/config"
@@ -222,34 +220,13 @@ func getAssetTags(tagSecretKey string, tpm tpmprovider.TpmProvider) (string, err
 		return "", errors.Wrap(err, "resource/quote:getAssetTags() Error while performing tpm nv read operation")
 	}
 
-	if len(indexBytes) < 2 {
-		return "", errors.New("Invalid tag index length")
+	if indexBytes == nil {
+		return "", errors.New("The tag data was nil")
+	} else if len(indexBytes) != constants.TagIndexSize {
+		return "", errors.Errorf("Invalid tag index length %d", len(indexBytes))
 	}
 
-	tagLength := uint16(0)
-	r := bytes.NewReader(indexBytes)
-	err = binary.Read(r, binary.LittleEndian, &tagLength)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to read asset tag length")
-	}
-
-	if tagLength == 0 {
-		return "", nil
-	} else if tagLength > constants.MaxHashLength {
-		return "", errors.Errorf("Invalid tag length %d", tagLength)
-	}
-
-	tagBytes := make([]byte, tagLength)
-	l, err := r.Read(tagBytes)
-	if err != nil {
-		return "", errors.Wrapf(err, "Failed to read tag bytes with length %d", tagLength)
-	}
-
-	if l != int(tagLength) {
-		return "", errors.Errorf("The index contained length %d but only %d were read", tagLength, l)
-	}
-
-	return base64.StdEncoding.EncodeToString(tagBytes), nil // this data will be evaluated in 'getNonce'
+	return base64.StdEncoding.EncodeToString(indexBytes), nil // this data will be evaluated in 'getNonce'
 }
 
 func createTpmQuote(tagSecretKey string, tpm tpmprovider.TpmProvider, tpmQuoteRequest *taModel.TpmQuoteRequest) (*taModel.TpmQuoteResponse, error) {

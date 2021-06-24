@@ -62,8 +62,7 @@ const (
 	DefaultIdleTimeout         = 10 * time.Second
 	DefaultMaxHeaderBytes      = 1 << 20
 	AikSecretKeyFile           = ConfigDir + "aiksecretkey"
-	MaxHashLength              = 128
-	TagIndexSize               = 2 + MaxHashLength // 2 bytes for length (short int) and enough bytes for future hash algorithms provided by HVS.
+	TagIndexSize               = 48 // size of sha384 hash
 	CommunicationModeHttp      = "http"
 	CommunicationModeOutbound  = "outbound"
 )

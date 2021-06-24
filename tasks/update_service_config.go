@@ -6,13 +6,14 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/lib/common/v4/setup"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type UpdateServiceConfig struct {
@@ -121,15 +122,6 @@ func (task *UpdateServiceConfig) Run(c setup.Context) error {
 		(*task.cfg).WebService.MaxHeaderBytes = constants.DefaultMaxHeaderBytes
 	} else {
 		(*task.cfg).WebService.MaxHeaderBytes = maxHeaderBytes
-	}
-
-	//---------------------------------------------------------------------------------------------
-	// Save config
-	//---------------------------------------------------------------------------------------------
-
-	err = (*task.cfg).Save()
-	if err != nil {
-		return errors.Wrap(err, "Error saving configuration")
 	}
 
 	return nil

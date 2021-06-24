@@ -3,8 +3,8 @@
 # T R U S T A G E N T   I N S T A L L E R
 #
 # Overall process:
-# 1. Make sure the script is ready to be run (root user, dependencies installed, etc.). And check for upgrade.
-# 2. Load trustagent.env if present and apply exports.
+# 1. Load trustagent.env if present and apply exports.
+# 2. Make sure the script is ready to be run (root user, dependencies installed, etc.). And check for upgrade.
 # 3. Create tagent user
 # 4. Create directories, copy files and own them by tagent user.
 # 5. Install application-agent
@@ -85,11 +85,30 @@ TRUSTAGENT_VAR_DIR=$TRUSTAGENT_HOME/var/
 TRUSTAGENT_YUM_PACKAGES="tpm2-tss-2.0.0-4.el8.x86_64 logrotate"
 
 #--------------------------------------------------------------------------------------------------
-# 1. Script prerequisites
+# 1. Load environment variable file
+#--------------------------------------------------------------------------------------------------
+if [ -f $USER_PWD/$TRUSTAGENT_ENV_FILE ]; then
+    env_file=$USER_PWD/$TRUSTAGENT_ENV_FILE
+elif [ -f ~/$TRUSTAGENT_ENV_FILE ]; then
+    env_file=~/$TRUSTAGENT_ENV_FILE
+fi
+
+if [ -z "$env_file" ]; then
+    echo "The trustagent.env file was not provided, 'automatic provisioning' will not be performed"
+    PROVISION_ATTESTATION="false"
+else
+    echo "Using environment file $env_file"
+    source $env_file
+    env_file_exports=$(cat $env_file | grep -E '^[A-Z0-9_]+\s*=' | cut -d = -f 1)
+    if [ -n "$env_file_exports" ]; then eval export $env_file_exports; fi
+fi
+
+#--------------------------------------------------------------------------------------------------
+# 2. Script prerequisites
 #--------------------------------------------------------------------------------------------------
 echo "Starting trustagent installation from " $USER_PWD
 
-if [[ $EUID -ne 0 ]]; then
+if [[ $EUID -ne 0 ]]; then  
     echo_failure "This installer must be run as root"
     exit 1
 fi
@@ -254,25 +273,6 @@ if [ ! -a /etc/logrotate.d/trustagent ]; then
     $LOG_DELAYCOMPRESS
     $LOG_COPYTRUNCATE
 }" >/etc/logrotate.d/trustagent
-fi
-
-#--------------------------------------------------------------------------------------------------
-# 2. Load environment variable file
-#--------------------------------------------------------------------------------------------------
-if [ -f $USER_PWD/$TRUSTAGENT_ENV_FILE ]; then
-    env_file=$USER_PWD/$TRUSTAGENT_ENV_FILE
-elif [ -f ~/$TRUSTAGENT_ENV_FILE ]; then
-    env_file=~/$TRUSTAGENT_ENV_FILE
-fi
-
-if [ -z "$env_file" ]; then
-    echo "The trustagent.env file was not provided, 'automatic provisioning' will not be performed"
-    PROVISION_ATTESTATION="false"
-else
-    echo "Using environment file $env_file"
-    source $env_file
-    env_file_exports=$(cat $env_file | grep -E '^[A-Z0-9_]+\s*=' | cut -d = -f 1)
-    if [ -n "$env_file_exports" ]; then eval export $env_file_exports; fi
 fi
 
 #--------------------------------------------------------------------------------------------------

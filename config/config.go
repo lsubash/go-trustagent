@@ -94,11 +94,12 @@ func NewConfigFromYaml(pathToYaml string) (*TrustAgentConfiguration, error) {
 var ErrNoConfigFile = errors.New("no config file")
 
 func (cfg *TrustAgentConfiguration) Save() error {
+
 	if cfg.configFile == "" {
 		return ErrNoConfigFile
 	}
 
-	file, err := os.OpenFile(cfg.configFile, os.O_RDWR, 0)
+	file, err := os.OpenFile(cfg.configFile, os.O_RDWR|os.O_TRUNC, 0)
 	if err != nil {
 		// we have an error
 		if os.IsNotExist(err) {
@@ -116,18 +117,20 @@ func (cfg *TrustAgentConfiguration) Save() error {
 			return err
 		}
 	}
+
 	defer func() {
 		derr := file.Close()
 		if derr != nil {
 			log.WithError(derr).Warn("Error closing file")
 		}
 	}()
-	secLog.Info(message.ConfigChanged)
+
 	err = yaml.NewEncoder(file).Encode(cfg)
 	if err != nil {
 		return err
 	}
 
+	secLog.Info(message.ConfigChanged)
 	log.Debug("Successfully updated config.yaml")
 	return nil
 }
@@ -137,7 +140,6 @@ func (cfg *TrustAgentConfiguration) Save() error {
 // is handled 'lazily' by setup tasks.
 func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	var err error
-	dirty := false
 	var context setup.Context
 	var environmentVariable string
 
@@ -147,7 +149,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	environmentVariable, err = context.GetenvString(constants.EnvMtwilsonAPIURL, "Verification Service API URL")
 	if environmentVariable != "" && cfg.HVS.Url != environmentVariable {
 		cfg.HVS.Url = environmentVariable
-		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
@@ -160,7 +161,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 		} else {
 			cfg.AAS.BaseURL = environmentVariable + "/"
 		}
-		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
@@ -169,7 +169,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	environmentVariable, err = context.GetenvString(constants.EnvCMSBaseURL, "CMS Base URL")
 	if environmentVariable != "" && cfg.CMS.BaseURL != environmentVariable {
 		cfg.CMS.BaseURL = environmentVariable
-		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
@@ -182,14 +181,12 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 		if err == nil {
 			cfg.Logging.LogLevel = llp.String()
 			fmt.Printf("Log level set %s\n", ll)
-			dirty = true
 		}
 	}
 
 	if cfg.Logging.LogLevel == "" {
 		fmt.Println(constants.EnvTALogLevel, " not defined, using default log level: Info")
 		cfg.Logging.LogLevel = logrus.InfoLevel.String()
-		dirty = true
 	}
 
 	//---------------------------------------------------------------------------------------------
@@ -207,7 +204,6 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 
 		if cfg.CMS.TLSCertDigest != environmentVariable {
 			cfg.CMS.TLSCertDigest = environmentVariable
-			dirty = true
 		}
 	}
 
@@ -240,7 +236,7 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 	if err == nil && environmentVariable != "" &&
 		(environmentVariable == constants.CommunicationModeHttp || environmentVariable == constants.CommunicationModeOutbound) {
 		cfg.Mode = environmentVariable
-		dirty = true
+
 		if cfg.Mode == constants.CommunicationModeOutbound {
 			//---------------------------------------------------------------------------------------------
 			// NAT_SERVERS
@@ -248,10 +244,8 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 			environmentVariable, err = context.GetenvString(constants.EnvNATServers, "NAT servers")
 			if err == nil && environmentVariable != "" {
 				cfg.Nats.Servers = strings.Split(environmentVariable, ",")
-				dirty = true
 			} else {
 				fmt.Println(constants.EnvNATServers, " not defined")
-				dirty = false
 			}
 
 			//---------------------------------------------------------------------------------------------
@@ -260,25 +254,13 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 			environmentVariable, err = context.GetenvString(constants.EnvTAHostId, "Trustagent Host Id")
 			if err == nil && environmentVariable != "" {
 				cfg.Nats.HostID = environmentVariable
-				dirty = true
 			} else {
 				fmt.Println(constants.EnvTAHostId, " not defined")
-				dirty = false
 			}
 		}
 	} else {
 		fmt.Printf("Invalid TA_SERVICE_MODE, using default value %s\n", constants.CommunicationModeHttp)
 		cfg.Mode = constants.CommunicationModeHttp
-	}
-
-	//---------------------------------------------------------------------------------------------
-	// Save config if 'dirty'
-	//---------------------------------------------------------------------------------------------
-	if dirty {
-		err = cfg.Save()
-		if err != nil {
-			return errors.Wrap(err, "Error saving configuration")
-		}
 	}
 
 	return nil

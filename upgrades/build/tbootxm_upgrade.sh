@@ -56,6 +56,11 @@ main() {
   INITRD_NAME=initrd.img-$KERNEL_VERSION-measurement
   BACKUP_DIR=${BACKUP_PATH}${SERVICE_NAME}_backup
 
+  if [ ! -d $TBOOTXM_HOME ]; then
+    echo "tboot-xm is not installed and will not be upgraded"
+    exit 0
+  fi
+
   echo "Creating backup directory for application agent ${BACKUP_DIR}/tbootxm"
   mkdir -p ${BACKUP_DIR}/tbootxm
   exit_on_error "Failed to create backup directory for application agent, exiting."
