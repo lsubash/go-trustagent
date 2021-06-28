@@ -1,0 +1,18 @@
+# Copyright (C) 2021 Intel Corporation
+# SPDX-License-Identifier: BSD-3-Clause
+
+FROM centos:8
+
+RUN yum install -y tpm2-tss && mkdir /config/
+
+COPY out/tagent /
+
+COPY out/upgrades/container_upgrade.sh /container_upgrade.sh
+
+COPY out/upgrades/config_upgrade.sh /config_upgrade.sh
+
+COPY upgrades/config/* /config/
+
+RUN chmod -R +x /container_upgrade.sh /config_upgrade.sh /config && touch /.container-env
+
+ENTRYPOINT ["/container_upgrade.sh"]

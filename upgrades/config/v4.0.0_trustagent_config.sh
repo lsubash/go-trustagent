@@ -6,12 +6,17 @@ BIN_DIR=/opt/$COMPONENT_NAME/bin
 VAR_DIR=/opt/$COMPONENT_NAME/var
 CONFIG_DIR=/opt/$COMPONENT_NAME/configuration
 echo "Starting $COMPONENT_NAME config upgrade to v4.0.0"
+TPM_OWNER_SECRET=${TPM_OWNER_SECRET:-""}
+
+if [ -f "/.container-env" ]; then
+  source /etc/secret-volume/secrets.txt
+  export BEARER_TOKEN
+  export TPM_OWNER_SECRET
+fi
 if [[ -z $BEARER_TOKEN ]]; then
   echo "BEARER_TOKEN is required for the upgrade to v4.0.0"
   exit 1
 fi
-
-TPM_OWNER_SECRET=${TPM_OWNER_SECRET:-""}
 
 # If the user has not specified the TPM_OWNER_SECRET and the 'old secret'
 # can be extracted from the old config file (ex. from v3.x), put that
