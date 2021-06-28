@@ -74,11 +74,6 @@ func (task *DownloadCredential) Run(c setup.Context) error {
 		return errors.Wrap(err, "Error while retrieving credential file from aas")
 	}
 
-	// create the credential directory if it does not exist
-	if _, err := os.Stat(constants.NatsCredentials); os.IsNotExist(err) {
-		os.MkdirAll(constants.NatsCredentials, 0600)
-	}
-
 	err = ioutil.WriteFile(constants.NatsCredentials, credentialFileBytes, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "Error while saving %s", constants.NatsCredentials)

@@ -5,6 +5,7 @@ SERVICE_NAME=tagent
 BIN_DIR=/opt/$COMPONENT_NAME/bin
 VAR_DIR=/opt/$COMPONENT_NAME/var
 CONFIG_DIR=/opt/$COMPONENT_NAME/configuration
+CREDS_DIR=$CONFIG_DIR/credentials
 echo "Starting $COMPONENT_NAME config upgrade to v4.0.0"
 TPM_OWNER_SECRET=${TPM_OWNER_SECRET:-""}
 
@@ -45,6 +46,12 @@ echo "Cleaning up software measure log"
 rm -rf $VAR_DIR/ramfs/*
 echo "Cleaning up AIKs"
 rm -rf $CONFIG_DIR/aik*
+
+# make /opt/trustagent/configuration/credentials directory
+if [[ ! -d $CREDS_DIR ]]; then
+  mkdir $CREDS_DIR
+  chmod 700 $CREDS_DIR
+fi
 
 echo "Re-provisioning the trust agent"
 ./$SERVICE_NAME setup provision-attestation
