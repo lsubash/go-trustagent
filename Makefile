@@ -68,9 +68,7 @@ unit_test: unit_test_bin
 
 oci-archive: gta download_upgrade_scripts
 	docker build ${DOCKER_PROXY_FLAGS} -t isecl/tagent:$(VERSION) -f dist/docker/Dockerfile .
-	docker build ${DOCKER_PROXY_FLAGS} -t isecl/tagent-upgrade:$(VERSION) -f dist/docker/Dockerfile-upgrade .
 	skopeo copy docker-daemon:isecl/tagent:$(VERSION) oci-archive:out/tagent-$(VERSION)-$(GITCOMMIT).tar
-	skopeo copy docker-daemon:isecl/tagent-upgrade:$(VERSION) oci-archive:out/tagent-upgrade-$(VERSION)-$(GITCOMMIT).tar
 
 k8s: oci-archive
 	cp -r dist/k8s out/
