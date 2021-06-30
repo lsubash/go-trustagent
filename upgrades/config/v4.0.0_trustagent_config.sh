@@ -13,6 +13,7 @@ if [ -f "/.container-env" ]; then
   source /etc/secret-volume/secrets.txt
   export BEARER_TOKEN
   export TPM_OWNER_SECRET
+  ln -sfT /usr/bin/$SERVICE_NAME /$SERVICE_NAME
 fi
 if [[ -z $BEARER_TOKEN ]]; then
   echo "BEARER_TOKEN is required for the upgrade to v4.0.0"
