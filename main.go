@@ -7,7 +7,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/x509"
 	"encoding/base64"
@@ -18,19 +17,19 @@ import (
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
 	"intel/isecl/go-trust-agent/v4/eventlog"
-	"intel/isecl/go-trust-agent/v4/outbound"
-	"intel/isecl/go-trust-agent/v4/resource"
+	"intel/isecl/go-trust-agent/v4/service"
 	_ "intel/isecl/go-trust-agent/v4/swagger/docs"
 	"intel/isecl/go-trust-agent/v4/tasks"
 	"intel/isecl/go-trust-agent/v4/util"
 	"os"
 	"os/exec"
+	"os/signal"
 	"os/user"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"syscall"
 
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/setup"
 	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
 
 	commonExec "github.com/intel-secl/intel-secl/v4/pkg/lib/common/exec"
@@ -504,43 +503,43 @@ func main() {
 
 		cfg.LogConfiguration(cfg.Logging.LogEnableStdout)
 
-		requestHandler := common.NewRequestHandler(cfg)
+		serviceParameters := service.ServiceParameters{
+			Mode: cfg.Mode,
+			Web: service.WebParameters{
+				WebService:                cfg.WebService,
+				TLSCertFilePath:           constants.TLSCertFilePath,
+				TLSKeyFilePath:            constants.TLSKeyFilePath,
+				TrustedJWTSigningCertsDir: constants.TrustedJWTSigningCertsDir,
+				TrustedCaCertsDir:         constants.TrustedCaCertsDir,
+			},
+			Nats: service.NatsParameters{
+				NatsService:       cfg.Nats,
+				CredentialFile:    constants.NatsCredentials,
+				TrustedCaCertsDir: constants.TrustedCaCertsDir,
+			},
+			RequestHandler: common.NewRequestHandler(cfg),
+		}
 
-		if strings.ToLower(cfg.Mode) == constants.CommunicationModeOutbound {
+		trustAgentService, err := service.NewTrustAgentService(&serviceParameters)
+		if err != nil {
+			log.WithError(err).Info("Failed to create service")
+			os.Exit(1)
+		}
 
-			subscriber, err := outbound.NewHVSSubscriber(requestHandler, cfg)
-			if err != nil {
-				log.WithError(err).Warn("Error creating the HVS subscriber")
-			}
+		err = trustAgentService.Start()
+		if err != nil {
+			log.WithError(err).Info("Failed to start service")
+			os.Exit(1)
+		}
 
-			if subscriber == nil {
-				log.Error("main:main() Error: could not initialize hvs subscriber")
-				os.Exit(1)
-			}
+		// Setup signal handlers to terminate service
+		stop := make(chan os.Signal)
+		signal.Notify(stop, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGKILL)
+		<-stop
 
-			err = subscriber.Start()
-			if err != nil {
-				log.WithError(err).Error("main:main() Error while starting nats client")
-				os.Exit(1)
-			}
-
-		} else if cfg.Mode == "" || strings.ToLower(cfg.Mode) == constants.CommunicationModeHttp {
-
-			// create and start webservice
-			service, err := resource.NewTrustAgentHttpService(requestHandler, cfg)
-			if err != nil {
-				log.WithError(err).Error("main:main() Error while creating trustagent service")
-				os.Exit(1)
-			}
-
-			err = service.Start()
-			if err != nil {
-				log.WithError(err).Error("main:main() Error while starting trustagent service")
-				os.Exit(1)
-			}
-
-		} else {
-			log.Errorf("Unknown communication mode %s", cfg.Mode)
+		if err := trustAgentService.Stop(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to shutdown service: %v\n", err)
+			log.WithError(err).Info("Failed to shutdown service")
 			os.Exit(1)
 		}
 
@@ -593,7 +592,7 @@ func main() {
 			// tagent setup -f <filename>
 			if os.Args[2] == "-f" {
 				if len(os.Args) > 3 {
-					sourceEnvFile(os.Args[3])
+					setup.ReadAnswerFileToEnv(os.Args[3])
 				} else {
 					log.Error("main:main() 'tagent setup' -f used but no filename given")
 					os.Exit(1)
@@ -605,7 +604,7 @@ func main() {
 				flags = os.Args[3:]
 				if len(flags) > 1 {
 					if flags[0] == "-f" {
-						sourceEnvFile(flags[1])
+						setup.ReadAnswerFileToEnv(flags[1])
 					} else {
 						printUsage()
 						os.Exit(1)
@@ -665,50 +664,6 @@ func main() {
 	default:
 		fmt.Fprintf(os.Stderr, "Invalid option: '%s'\n\n", cmd)
 		printUsage()
-	}
-}
-
-func sourceEnvFile(trustagentEnvFile string) {
-	fi, err := os.Stat(trustagentEnvFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s file does not exist", trustagentEnvFile)
-		os.Exit(1)
-	}
-
-	fileSz := fi.Size()
-	if fileSz == 0 || fileSz > constants.TrustAgentEnvMaxLength {
-		fmt.Fprintf(os.Stderr, "%s file size exceeds maximum length: %d", trustagentEnvFile, constants.TrustAgentEnvMaxLength)
-		os.Exit(1)
-	}
-
-	file, err := os.Open(trustagentEnvFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to open file: %s", trustagentEnvFile)
-		os.Exit(1)
-	}
-	defer func() {
-		derr := file.Close()
-		if derr != nil {
-			log.WithError(derr).Warn("Error closing file")
-		}
-	}()
-
-	scanner := bufio.NewScanner(file)
-	var envKeyPair []string
-	for scanner.Scan() {
-		if scanner.Text() == "" || strings.HasPrefix("#", scanner.Text()) {
-			continue
-		}
-		if strings.Contains(scanner.Text(), "=") {
-			envKeyPair = strings.Split(scanner.Text(), "=")
-			envKeyPair[1] = strings.TrimFunc(envKeyPair[1], func(r rune) bool {
-				return r == '"' || r == '\''
-			})
-			err = os.Setenv(envKeyPair[0], envKeyPair[1])
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Unable to set env: %s", envKeyPair[0])
-			}
-		}
 	}
 }
 

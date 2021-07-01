@@ -2,7 +2,7 @@
  * Copyright (C) 2020 Intel Corporation
  * SPDX-License-Identifier: BSD-3-Clause
  */
-package resource
+package service
 
 import (
 	"context"
@@ -16,9 +16,7 @@ import (
 	stdlog "log"
 	"net/http"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -46,12 +44,10 @@ const (
 	postQuotePerm          = "quote:create"
 )
 
-var log = commLog.GetDefaultLogger()
-var secLog = commLog.GetSecurityLogger()
-
-type TrustAgentService struct {
-	port   int
-	router *mux.Router
+type trustAgentWebService struct {
+	webParameters WebParameters
+	router        *mux.Router
+	server        *http.Server
 }
 
 type privilegeError struct {
@@ -68,16 +64,16 @@ func (e privilegeError) Error() string {
 var cacheTime, _ = time.ParseDuration(constants.JWTCertsCacheTime)
 var seclog = commLog.GetSecurityLogger()
 
-func NewTrustAgentHttpService(requestHandler common.RequestHandler, config *config.TrustAgentConfiguration) (*TrustAgentService, error) {
-	log.Trace("resource/service:CreateTrustAgentService() Entering")
-	defer log.Trace("resource/service:CreateTrustAgentService() Leaving")
+func newWebService(webParameters *WebParameters, requestHandler common.RequestHandler) (TrustAgentService, error) {
+	log.Trace("resource/service:NewTrustAgentHttpService() Entering")
+	defer log.Trace("resource/service:NewTrustAgentHttpService() Leaving")
 
-	if config.WebService.Port == 0 {
+	if webParameters.Port == 0 {
 		return nil, errors.New("Port cannot be zero")
 	}
 
-	trustAgentService := TrustAgentService{
-		port: config.WebService.Port,
+	trustAgentService := trustAgentWebService{
+		webParameters: *webParameters,
 	}
 
 	// Register routes...
@@ -90,7 +86,7 @@ func NewTrustAgentHttpService(requestHandler common.RequestHandler, config *conf
 
 	// use permission-based access control for webservices
 	authRouter := trustAgentService.router.PathPrefix("/v2/").Subrouter()
-	authRouter.Use(middleware.NewTokenAuth(constants.TrustedJWTSigningCertsDir, constants.TrustedCaCertsDir, fnGetJwtCerts, cacheTime))
+	authRouter.Use(middleware.NewTokenAuth(webParameters.TrustedJWTSigningCertsDir, webParameters.TrustedCaCertsDir, fnGetJwtCerts, cacheTime))
 
 	authRouter.HandleFunc("/aik", errorHandler(requiresPermission(getAik(requestHandler), []string{getAIKPerm}))).Methods("GET")
 	authRouter.HandleFunc("/host", errorHandler(requiresPermission(getPlatformInfo(requestHandler), []string{getHostInfoPerm}))).Methods("GET")
@@ -103,7 +99,7 @@ func NewTrustAgentHttpService(requestHandler common.RequestHandler, config *conf
 	return &trustAgentService, nil
 }
 
-func (service *TrustAgentService) Start() error {
+func (service *trustAgentWebService) Start() error {
 	log.Trace("resource/service:Start() Entering")
 	defer log.Trace("resource/service:Start() Leaving")
 
@@ -114,10 +110,6 @@ func (service *TrustAgentService) Start() error {
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
 	}
-
-	// Setup signal handlers to gracefully handle termination
-	stop := make(chan os.Signal)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGKILL)
 
 	httpWriter := os.Stderr
 	if httpLogFile, err := os.OpenFile(constants.HttpLogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640); err != nil {
@@ -133,47 +125,45 @@ func (service *TrustAgentService) Start() error {
 		httpWriter = httpLogFile
 	}
 
-	cfg, err := config.NewConfigFromYaml(constants.ConfigFilePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error while parsing configuration file %v \n", err)
-		os.Exit(1)
-	}
-
 	httpLog := stdlog.New(httpWriter, "", 0)
-	h := &http.Server{
-		Addr:              fmt.Sprintf(":%d", service.port),
+	service.server = &http.Server{
+		Addr:              fmt.Sprintf(":%d", service.webParameters.Port),
 		Handler:           handlers.RecoveryHandler(handlers.RecoveryLogger(httpLog), handlers.PrintRecoveryStack(true))(handlers.CombinedLoggingHandler(os.Stderr, service.router)),
 		ErrorLog:          httpLog,
 		TLSConfig:         tlsconfig,
-		ReadTimeout:       cfg.WebService.ReadTimeout,
-		ReadHeaderTimeout: cfg.WebService.ReadHeaderTimeout,
-		WriteTimeout:      cfg.WebService.WriteTimeout,
-		IdleTimeout:       cfg.WebService.IdleTimeout,
-		MaxHeaderBytes:    cfg.WebService.MaxHeaderBytes,
+		ReadTimeout:       service.webParameters.ReadTimeout,
+		ReadHeaderTimeout: service.webParameters.ReadHeaderTimeout,
+		WriteTimeout:      service.webParameters.WriteTimeout,
+		IdleTimeout:       service.webParameters.IdleTimeout,
+		MaxHeaderBytes:    service.webParameters.MaxHeaderBytes,
 	}
 
 	// dispatch web server go routine
 	go func() {
-		if err := h.ListenAndServeTLS(constants.TLSCertFilePath, constants.TLSKeyFilePath); err != nil {
+		if err := service.server.ListenAndServeTLS(service.webParameters.TLSCertFilePath, service.webParameters.TLSKeyFilePath); err != nil {
 			secLog.Errorf("tasks/service:Start() %s", message.TLSConnectFailed)
 			secLog.WithError(err).Fatalf("server:startServer() Failed to start HTTPS server: %s\n", err.Error())
 			log.Tracef("%+v", err)
-			stop <- syscall.SIGTERM
 		}
 	}()
 	secLog.Info(message.ServiceStart)
-	secLog.Infof("TrustAgent service is running: %d", service.port)
-	log.Infof("TrustAgent service is running: %d", service.port)
+	secLog.Infof("TrustAgent service is running: %d", service.webParameters.Port)
+	log.Infof("TrustAgent service is running: %d", service.webParameters.Port)
 
-	<-stop
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := h.Shutdown(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to gracefully shutdown webserver: %v\n", err)
-		log.WithError(err).Info("Failed to gracefully shutdown webserver")
-		return err
+	return nil
+}
+
+func (service *trustAgentWebService) Stop() error {
+	if service.server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := service.server.Shutdown(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to gracefully shutdown webserver: %v\n", err)
+			log.WithError(err).Info("Failed to gracefully shutdown webserver")
+			return err
+		}
 	}
-	secLog.Info(message.ServiceStop)
+
 	return nil
 }
 

@@ -24,6 +24,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type WebService struct {
+	Port              int           // TRUSTAGENT_PORT
+	ReadTimeout       time.Duration // TA_SERVER_READ_TIMEOUT
+	ReadHeaderTimeout time.Duration // TA_SERVER_READ_HEADER_TIMEOUT
+	WriteTimeout      time.Duration // TA_SERVER_WRITE_TIMEOUT
+	IdleTimeout       time.Duration // TA_SERVER_IDLE_TIMEOUT
+	MaxHeaderBytes    int           // TA_SERVER_MAX_HEADER_BYTES
+}
+
+type NatsService struct {
+	Servers []string
+	HostID  string
+}
+
 type TrustAgentConfiguration struct {
 	configFile string
 	Mode       string
@@ -32,15 +46,8 @@ type TrustAgentConfiguration struct {
 		LogEnableStdout   bool   // TA_ENABLE_CONSOLE_LOG
 		LogEntryMaxLength int    // LOG_ENTRY_MAXLENGTH (NEEDS TO BE IN LLD)
 	}
-	WebService struct {
-		Port              int           // TRUSTAGENT_PORT
-		ReadTimeout       time.Duration // TA_SERVER_READ_TIMEOUT
-		ReadHeaderTimeout time.Duration // TA_SERVER_READ_HEADER_TIMEOUT
-		WriteTimeout      time.Duration // TA_SERVER_WRITE_TIMEOUT
-		IdleTimeout       time.Duration // TA_SERVER_IDLE_TIMEOUT
-		MaxHeaderBytes    int           // TA_SERVER_MAX_HEADER_BYTES
-	}
-	HVS struct {
+	WebService WebService
+	HVS        struct {
 		Url string // HVS_URL
 	}
 	Tpm struct {
@@ -57,10 +64,7 @@ type TrustAgentConfiguration struct {
 		CertSAN string // SAN_LIST
 		CertCN  string // TA_TLS_CERT_CN
 	}
-	Nats struct {
-		Servers []string
-		HostID  string
-	}
+	Nats NatsService
 }
 
 var mu sync.Mutex
