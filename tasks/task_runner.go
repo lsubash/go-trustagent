@@ -47,7 +47,6 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	var tpmFactory tpmprovider.TpmFactory
 	var err error
 	var runner setup.Runner
-	var ownerSecret *string
 
 	if cfg == nil {
 		return nil, errors.New("The cfg parameter was not provided")
@@ -55,14 +54,11 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	//
 	// Lookup the TPM_OWNER_SECRET env variable.  If it is not present,
-	// pass 'nil' to support logic in take-ownership (i.e., to differentiate
-	// between the empty password "").
+	// the empty password ('') will be used.
 	//
-	envSecret, exists := os.LookupEnv(constants.EnvTPMOwnerSecret)
-	if exists {
-		ownerSecret = &envSecret
-	} else {
-		log.Debug("The TPM_OWNER_SECRET environment variable is not defined.")
+	ownerSecret, exists := os.LookupEnv(constants.EnvTPMOwnerSecret)
+	if !exists {
+		ownerSecret = ""
 	}
 
 	switch setupCmd {
@@ -88,7 +84,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	takeOwnershipTask := &TakeOwnership{
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &ownerSecret,
+		ownerSecretKey: ownerSecret,
 	}
 
 	downloadRootCACertTask := &setup.Download_Ca_Cert{
@@ -119,7 +115,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 	provisionAttestationIdentityKeyTask := &ProvisionAttestationIdentityKey{
 		clientFactory:  vsClientFactory,
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &ownerSecret,
+		ownerSecretKey: ownerSecret,
 	}
 
 	downloadPrivacyCATask := &DownloadPrivacyCA{
@@ -128,7 +124,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	provisionPrimaryKeyTask := &ProvisionPrimaryKey{
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &ownerSecret,
+		ownerSecretKey: ownerSecret,
 	}
 
 	downloadCredentialTask := &DownloadCredential{
@@ -156,8 +152,8 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	defineTagIndexTask := &DefineTagIndex{
 		tpmFactory:     tpmFactory,
-		ownerSecretKey: &ownerSecret,
-		assetTagSecret: &cfg.Tpm.TagSecretKey,
+		ownerSecretKey: ownerSecret,
+		tagSecretKey:   &cfg.Tpm.TagSecretKey,
 	}
 
 	switch setupCmd {

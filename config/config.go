@@ -263,7 +263,7 @@ func (cfg *TrustAgentConfiguration) LoadEnvironmentVariables() error {
 			}
 		}
 	} else {
-		fmt.Printf("Invalid TA_SERVICE_MODE, using default value %s\n", constants.CommunicationModeHttp)
+		fmt.Printf("TA_SERVICE_MODE not provided, using default value %s\n", constants.CommunicationModeHttp)
 		cfg.Mode = constants.CommunicationModeHttp
 	}
 

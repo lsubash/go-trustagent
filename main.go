@@ -636,8 +636,8 @@ func main() {
 
 		err = runner.RunTasks()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error while running setup Command %s, \n Error: %s\n ", setupCommand, err.Error())
-			log.WithError(err).Errorf("main:main() Error while running setup Command %s", setupCommand)
+			fmt.Fprintf(os.Stderr, "Error running 'tagent setup %s': %s\n", setupCommand, err.Error())
+			log.WithError(err).Errorf("main:main() Error running 'tagent setup %s'", setupCommand)
 			os.Exit(1)
 		}
 

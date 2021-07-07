@@ -50,7 +50,7 @@ import (
 type ProvisionAttestationIdentityKey struct {
 	clientFactory  hvsclient.HVSClientFactory
 	tpmFactory     tpmprovider.TpmFactory
-	ownerSecretKey **string
+	ownerSecretKey string
 }
 
 func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
@@ -59,20 +59,13 @@ func (task *ProvisionAttestationIdentityKey) Run(c setup.Context) error {
 	fmt.Println("Running setup task: provision-aik")
 	var err error
 
-	if task.ownerSecretKey == nil || *task.ownerSecretKey == nil {
-		errorMessage := `The 'provision-aik' task requires the owner-secret.  If you wish to generate
-		a new owner-secret (i.e., with take-ownership), 'provision-primary-aik' must be 
-		run at the same time using 'tagent setup' or 'tagent setup provsion-attestation'.`
-		return errors.New(errorMessage)
-	}
-
 	privacyCAClient, err := task.clientFactory.PrivacyCAClient()
 	if err != nil {
 		return errors.Wrap(err, "Failed to create privacyca-client")
 	}
 
 	// read the EK certificate and fail if not present...
-	ekCertBytes, err := util.GetEndorsementKeyCertificateBytes(**task.ownerSecretKey)
+	ekCertBytes, err := util.GetEndorsementKeyCertificateBytes(task.ownerSecretKey)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get the endorsement certificate from the TPM")
 	}
@@ -198,7 +191,7 @@ func (task *ProvisionAttestationIdentityKey) createAik() error {
 	//
 	// Create an EK that will be used to generate the AIK...
 	//
-	err = tpm.CreateEk(**task.ownerSecretKey, tpmprovider.TPM_HANDLE_EK)
+	err = tpm.CreateEk(task.ownerSecretKey, tpmprovider.TPM_HANDLE_EK)
 	if err != nil {
 		return errors.Wrap(err, "Error while creating EK")
 	}
@@ -207,7 +200,7 @@ func (task *ProvisionAttestationIdentityKey) createAik() error {
 	// Compare the new EK's public key with the public key of the EK Certificate, if they don't
 	// match then report an error to avoid downstream failures when communicating with HVS.
 	//
-	isValidEk, err := tpm.IsValidEk(**task.ownerSecretKey, tpmprovider.TPM_HANDLE_EK, tpmprovider.NV_IDX_RSA_ENDORSEMENT_CERTIFICATE)
+	isValidEk, err := tpm.IsValidEk(task.ownerSecretKey, tpmprovider.TPM_HANDLE_EK, tpmprovider.NV_IDX_RSA_ENDORSEMENT_CERTIFICATE)
 	if err != nil {
 		return errors.Wrap(err, "Error validating EK")
 	}
@@ -219,7 +212,7 @@ func (task *ProvisionAttestationIdentityKey) createAik() error {
 	//
 	// create the AIK...
 	//
-	err = tpm.CreateAik(**task.ownerSecretKey)
+	err = tpm.CreateAik(task.ownerSecretKey)
 	if err != nil {
 		return errors.Wrap(err, "Error while creating AIK")
 	}
@@ -318,7 +311,7 @@ func (task *ProvisionAttestationIdentityKey) activateCredential(identityProofReq
 	//
 	// Now decrypt the symetric key using ActivateCredential
 	//
-	symmetricKey, err := tpm.ActivateCredential(**task.ownerSecretKey, credentialBytes, secretBytes)
+	symmetricKey, err := tpm.ActivateCredential(task.ownerSecretKey, credentialBytes, secretBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error while performing tpm activate credential operation")
 	}

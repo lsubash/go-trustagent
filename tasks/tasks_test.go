@@ -31,7 +31,7 @@ const (
 //   env CGO_CFLAGS_ALLOW="-f.*" go test -v -tags unit_test -run TestTakeOwnership* intel/isecl/go-trust-agent/v4/tasks
 //
 
-func runTakeOwnership(t *testing.T, mockedTpmFactory tpmprovider.MockedTpmFactory, ownerSecret **string) error {
+func runTakeOwnership(t *testing.T, mockedTpmFactory tpmprovider.MockedTpmFactory, ownerSecret string) error {
 
 	takeOwnership := TakeOwnership{tpmFactory: mockedTpmFactory, ownerSecretKey: ownerSecret}
 
@@ -41,58 +41,6 @@ func runTakeOwnership(t *testing.T, mockedTpmFactory tpmprovider.MockedTpmFactor
 	}
 
 	return nil
-}
-
-// If the owner-secret is nil (not defined in answer file) and the
-// TPM is in a clear state, expect the task to generate a 40 character
-// password and use it to take-ownership of the TPM.
-func TestTakeOwnershipNilSecretClearTPM(t *testing.T) {
-
-	// mock "clear" TPM
-	mockedTpmProvider := new(tpmprovider.MockedTpmProvider)
-	mockedTpmProvider.On("Close").Return(nil)
-	mockedTpmProvider.On("Version", mock.Anything).Return(tpmprovider.V20)
-	mockedTpmProvider.On("TakeOwnership", mock.Anything).Return(nil)
-	mockedTpmProvider.On("IsOwnedWithAuth", "").Return(true, nil)
-	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
-
-	var ownerSecret *string
-	err := runTakeOwnership(t, mockedTpmFactory, &ownerSecret)
-	if err != nil {
-		t.Fatal(err) // unexpected
-	}
-
-	if ownerSecret == nil {
-		t.Fatalf("The owner-secret was not generated")
-	} else if len(*ownerSecret) != 40 {
-		t.Fatalf("The generated owner-secret had an invalid length")
-	}
-
-	t.Logf("Successfully generated owner-secret '%s'", *ownerSecret)
-}
-
-// If the owner-secret is nil (not defined in answer file) and the
-// TPM is not in a clear state (it has a different password), expect
-// take-ownership to fail because the default, empty password can't
-// gain owner access.
-func TestTakeOwnershipNilSecretNotClearTPM(t *testing.T) {
-
-	// mock a "not cleared" TPM (i.e., that fails when "" is used for
-	// the owner-secret).
-	mockedTpmProvider := new(tpmprovider.MockedTpmProvider)
-	mockedTpmProvider.On("Close").Return(nil)
-	mockedTpmProvider.On("Version", mock.Anything).Return(tpmprovider.V20)
-	mockedTpmProvider.On("TakeOwnership", mock.Anything).Return(errors.New(""))
-	mockedTpmProvider.On("IsOwnedWithAuth", "").Return(false, nil)
-	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
-
-	var ownerSecret *string
-	err := runTakeOwnership(t, mockedTpmFactory, &ownerSecret)
-	if err == nil {
-		t.Fatalf("The unit test expected take-ownership to fail")
-	}
-
-	t.Log(err)
 }
 
 // If the empty password is provided (TPM_OWNER_SECRET="") and
@@ -107,15 +55,9 @@ func TestTakeOwnershipEmptySecretClearTPM(t *testing.T) {
 	mockedTpmProvider.On("IsOwnedWithAuth", "").Return(true, nil)
 	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
 
-	ownerSecret := string("")
-	results := &ownerSecret
-	err := runTakeOwnership(t, mockedTpmFactory, &results)
+	err := runTakeOwnership(t, mockedTpmFactory, "")
 	if err != nil {
 		t.Fatal(err) // unexpected
-	}
-
-	if *results != ownerSecret {
-		t.Fatalf("The owner-secret was changed")
 	}
 }
 
@@ -132,9 +74,7 @@ func TestTakeOwnershipEmptySecretNotClearTPM(t *testing.T) {
 	mockedTpmProvider.On("IsOwnedWithAuth", "").Return(false, nil)
 	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
 
-	ownerSecret := string("")
-	results := &ownerSecret
-	err := runTakeOwnership(t, mockedTpmFactory, &results)
+	err := runTakeOwnership(t, mockedTpmFactory, "")
 	if err == nil {
 		t.Fatalf("The unit test expected take-ownership to fail")
 	}
@@ -156,15 +96,9 @@ func TestTakeOwnershipProvidedSecretClearTPM(t *testing.T) {
 	mockedTpmProvider.On("IsOwnedWithAuth", "").Return(true, nil)
 	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
 
-	ownerSecret := string(TpmSecretKey)
-	results := &ownerSecret
-	err := runTakeOwnership(t, mockedTpmFactory, &results)
+	err := runTakeOwnership(t, mockedTpmFactory, TpmSecretKey)
 	if err != nil {
 		t.Fatal(err) // unexpected
-	}
-
-	if *results != ownerSecret {
-		t.Fatalf("The owner-secret was changed")
 	}
 }
 
@@ -181,15 +115,9 @@ func TestTakeOwnershipProvidedSecretThatOwnsTPM(t *testing.T) {
 	mockedTpmProvider.On("IsOwnedWithAuth", TpmSecretKey).Return(true, nil)
 	mockedTpmFactory := tpmprovider.MockedTpmFactory{TpmProvider: mockedTpmProvider}
 
-	ownerSecret := string(TpmSecretKey)
-	results := &ownerSecret
-	err := runTakeOwnership(t, mockedTpmFactory, &results)
+	err := runTakeOwnership(t, mockedTpmFactory, TpmSecretKey)
 	if err != nil {
 		t.Fatal(err) // unexpected
-	}
-
-	if *results != ownerSecret {
-		t.Fatalf("The owner-secret was changed")
 	}
 }
 
