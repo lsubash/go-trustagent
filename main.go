@@ -26,6 +26,7 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 
@@ -360,6 +361,12 @@ func uninstall() error {
 }
 
 func main() {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Panic occurred: %+v\n%s", err, string(debug.Stack()))
+		}
+	}()
 
 	if len(os.Args) <= 1 {
 		fmt.Fprintf(os.Stderr, "Invalid arguments: %s\n", os.Args)

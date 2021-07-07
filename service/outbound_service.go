@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/util"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -70,7 +71,7 @@ func (subscriber *trustAgentOutboundService) Start() error {
 			log.WithError(err).Debugf("NATs client disconnected [%s]", conn.Opts.Name)
 		}),
 		nats.ReconnectHandler(func(conn *nats.Conn) {
-			log.Debugf("NATs client reconnected [%s]", conn.Opts.Name)
+			log.Debugf("NATs client reconnected [%s] to %q", conn.Opts.Name, conn.ConnectedAddr())
 		}),
 		nats.ClosedHandler(func(conn *nats.Conn) {
 			log.Debugf("NATs client closed [%s]", conn.Opts.Name)
@@ -95,6 +96,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to quote-request messages
 	quoteSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsQuoteRequest)
 	subscriber.natsConnection.Subscribe(quoteSubject, func(subject string, reply string, quoteRequest *taModel.TpmQuoteRequest) {
+		defer recoverFunc()()
+
 		quoteResponse, err := subscriber.handler.GetTpmQuote(quoteRequest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle quote-request")
@@ -106,6 +109,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	//subscribe to host-info request messages
 	hostInfoSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsHostInfoRequest)
 	subscriber.natsConnection.Subscribe(hostInfoSubject, func(m *nats.Msg) {
+		defer recoverFunc()()
+
 		hostInfo, err := subscriber.handler.GetHostInfo()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle quote-request")
@@ -117,6 +122,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to aik request messages
 	aikSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsAikRequest)
 	subscriber.natsConnection.Subscribe(aikSubject, func(m *nats.Msg) {
+		defer recoverFunc()()
+
 		aik, err := subscriber.handler.GetAikDerBytes()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle aik-request")
@@ -128,6 +135,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to deploy asset tag request messages
 	deployTagSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsDeployAssetTagRequest)
 	subscriber.natsConnection.Subscribe(deployTagSubject, func(subject string, reply string, tagWriteRequest *taModel.TagWriteRequest) {
+		defer recoverFunc()()
+
 		err := subscriber.handler.DeployAssetTag(tagWriteRequest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle deploy-asset-tag")
@@ -139,6 +148,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to binding key request messages
 	bkSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsBkRequest)
 	subscriber.natsConnection.Subscribe(bkSubject, func(m *nats.Msg) {
+		defer recoverFunc()()
+
 		bk, err := subscriber.handler.GetBindingCertificateDerBytes()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle get-binding-certificate")
@@ -150,6 +161,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to deploy manifest request messages
 	deployManifestSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsDeployManifestRequest)
 	subscriber.natsConnection.Subscribe(deployManifestSubject, func(subject string, reply string, manifest *taModel.Manifest) {
+		defer recoverFunc()()
+
 		err = subscriber.handler.DeploySoftwareManifest(manifest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle deploy-manifest")
@@ -161,6 +174,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to application measurement request messages
 	applicationMeasurementSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsApplicationMeasurementRequest)
 	subscriber.natsConnection.Subscribe(applicationMeasurementSubject, func(subject string, reply string, manifest *taModel.Manifest) {
+		defer recoverFunc()()
+
 		measurement, err := subscriber.handler.GetApplicationMeasurement(manifest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle application-measurement-request")
@@ -172,6 +187,8 @@ func (subscriber *trustAgentOutboundService) Start() error {
 	// subscribe to version requests
 	versionSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsVersionRequest)
 	subscriber.natsConnection.Subscribe(versionSubject, func(m *nats.Msg) {
+		defer recoverFunc()()
+
 		versionInfo, err := util.GetVersionInfo()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle version-request")
@@ -180,11 +197,19 @@ func (subscriber *trustAgentOutboundService) Start() error {
 		subscriber.natsConnection.Publish(m.Reply, versionInfo)
 	})
 
-	log.Infof("Running Trust-Agent %s...", subscriber.natsParameters.HostID)
+	log.Infof("Outbound Trust-Agent %q connected to %q", subscriber.natsParameters.HostID, subscriber.natsConnection.Conn.ConnectedAddr())
 	return nil
 }
 
 func (subscriber *trustAgentOutboundService) Stop() error {
 	subscriber.natsConnection.Close()
 	return nil
+}
+
+func recoverFunc() func() {
+	return func() {
+		if err := recover(); err != nil {
+			log.Errorf("Panic occurred: %+v\n%s", err, string(debug.Stack()))
+		}
+	}
 }

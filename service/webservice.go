@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"runtime/debug"
 
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
@@ -206,6 +207,13 @@ func errorHandler(eh endpointHandler) http.HandlerFunc {
 	log.Trace("resource/service:errorHandler() Entering")
 	defer log.Trace("resource/service:errorHandler() Leaving")
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Errorf("Panic occurred: %+v\n%s", err, string(debug.Stack()))
+				http.Error(w, "Unknown Error", http.StatusInternalServerError)
+			}
+		}()
+
 		if err := eh(w, r); err != nil {
 			if strings.TrimSpace(strings.ToLower(err.Error())) == "record not found" {
 				http.Error(w, err.Error(), http.StatusNotFound)
