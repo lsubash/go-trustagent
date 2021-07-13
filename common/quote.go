@@ -226,6 +226,23 @@ func getAssetTags(tagSecretKey string, tpm tpmprovider.TpmProvider) (string, err
 		return "", errors.Errorf("Invalid tag index length %d", len(indexBytes))
 	}
 
+	//
+	// The v4.0 Trust-Agent allocates the tag index during 'tagent setup'.  At that
+	// time, the index is filled with zeros.  If the all of the bytes are zero, then
+	// a tag has not been deployed so return "" to indicate 'no tag present'.
+	//
+	allZeros := true
+	for _, v := range indexBytes {
+		if v != 0 {
+			allZeros = false
+			break
+		}
+	}
+
+	if allZeros {
+		return "", nil
+	}
+
 	return base64.StdEncoding.EncodeToString(indexBytes), nil // this data will be evaluated in 'getNonce'
 }
 
