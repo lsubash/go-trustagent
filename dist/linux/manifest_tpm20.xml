@@ -11,6 +11,6 @@
    <File Path="/opt/tbootxm/lib/.*" SearchType="regex"/>
    <File Path="/opt/tbootxm/mkinitrd_files/setup-measure_host.sh"/>
    <Dir Exclude="" FilterType="regex" Include=".*" Path="/opt/trustagent/bin"/>
-   <File Path="/home/root/tmp/trustagent/bin/tagent"/>
-   <File Path="/home/root/tmp/trustagent/bin/.*\.sh" SearchType="regex"/>
+   <File Path="/usr/bin/tagent"/>
+   <File Path="/usr/bin/.*\.sh" SearchType="regex"/>
 </Manifest>

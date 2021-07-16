@@ -7,8 +7,8 @@ After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/usr/bin/trustagent
-ExecStart=/usr/bin/trustagent/tagent startService
+WorkingDirectory=/usr/bin/
+ExecStart=/usr/bin/tagent startService
 ExecStop=/bin/kill -s HUP $MAINPID
 TimeoutStartSec=45
 Restart=on-failure

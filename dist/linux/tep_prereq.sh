@@ -17,7 +17,7 @@
 #--------------------------------------------------------------------------------------------------
 # Script variables
 #--------------------------------------------------------------------------------------------------
-DEFAULT_TRUSTAGENT_HOME=/home/root/tmp/trustagent
+DEFAULT_TRUSTAGENT_HOME=/home/root/tep_luks_dev/trustagent
 DEFAULT_TRUSTAGENT_INBUILT=/usr/bin/trustagent
 DEFAULT_TRUSTAGENT_USERNAME=root
 
@@ -29,7 +29,7 @@ TRUSTAGENT_ENV_FILE=trustagent.env
 TRUSTAGENT_SERVICE=tagent.service
 TRUSTAGENT_INIT_SERVICE=tagent_init.service
 TRUSTAGENT_BIN_DIR=$DEFAULT_TRUSTAGENT_INBUILT
-TRUSTAGENT_LOG_DIR=${TRUSTAGENT_LOG_DIR:-/home/root/tmp/log/trustagent}
+TRUSTAGENT_LOG_DIR=${TRUSTAGENT_LOG_DIR:-/home/root/tep_luks_dev/log/trustagent}
 TRUSTAGENT_CFG_DIR=$TRUSTAGENT_HOME/configuration
 TRUSTAGENT_VAR_DIR=$TRUSTAGENT_HOME/var/
 TPM2_ABRMD_SERVICE=tpm2-abrmd.service

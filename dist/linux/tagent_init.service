@@ -4,7 +4,7 @@ Description=TrustAgent Initialization
 [Service]
 Type=oneshot
 WorkingDirectory=/usr/bin/trustagent
-ExecStart=/usr/bin/trustagent/tagent init
+ExecStart=/usr/bin/tagent init
 
 [Install]
 WantedBy=multi-user.target

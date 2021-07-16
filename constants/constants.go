@@ -7,11 +7,11 @@ package constants
 import "time"
 
 const (
-	InstallationDir            = "/home/root/tmp/trustagent/"
+	InstallationDir            = "/home/root/tep_luks_dev/trustagent/"
 	ConfigDir                       = InstallationDir + "configuration/"
 	ConfigFilePath                  = ConfigDir + "config.yml"
 	BinDir                          = InstallationDir + "bin/"
-	LogDir                     = "/home/root/tmp/log/trustagent/"
+	LogDir                     = "/home/root/tep_luks_dev/log/trustagent/"
 	HttpLogFile                     = LogDir + "http.log"
 	DefaultLogFilePath              = LogDir + "trustagent.log"
 	SecurityLogFilePath             = LogDir + "trustagent-security.log"
