@@ -21,7 +21,7 @@ The Trust Agent resides on physical servers and enables both remote attestation 
 
 ## Software requirements
 - git
-- go >= `go1.12.1` & <= `go1.14.1`
+- go version `1.14.4`
 
 ### Additional software requirements for building GTA container image in oci format
 - docker
