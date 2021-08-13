@@ -15,6 +15,7 @@ import (
 
 	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
 	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/hostinfo"
 	"github.com/pkg/errors"
 )
 
@@ -34,6 +35,7 @@ const (
 	UpdateServiceConfigCommand             = "update-service-config"
 	DefineTagIndexCommand                  = "define-tag-index"
 	DownloadCredentialCommand              = "download-credential"
+	DownloadApiTokenCommand                = "download-api-token"
 )
 
 var log = commLog.GetDefaultLogger()
@@ -156,6 +158,12 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 		tagSecretKey:   &cfg.Tpm.TagSecretKey,
 	}
 
+	downloadApiToken := &DownloadApiToken{
+		aasUrl:           cfg.AAS.BaseURL,
+		hostHardwareUUID: hostinfo.NewHostInfoParser().Parse().HardwareUUID,
+		cfg:              cfg,
+	}
+
 	switch setupCmd {
 	case ProvisionAttestationCommand:
 		runner.Tasks = append(runner.Tasks, []setup.Task{downloadPrivacyCATask, takeOwnershipTask, defineTagIndexTask,
@@ -175,7 +183,7 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	case DefaultSetupCommand:
 		runner.Tasks = append(runner.Tasks, []setup.Task{updateServiceConfigTask, downloadRootCACertTask, downloadPrivacyCATask,
-			takeOwnershipTask, defineTagIndexTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask}...)
+			takeOwnershipTask, defineTagIndexTask, provisionAttestationIdentityKeyTask, provisionPrimaryKeyTask, downloadApiToken}...)
 		if cfg.Mode == constants.CommunicationModeOutbound {
 			runner.Tasks = append(runner.Tasks, downloadCredentialTask)
 		} else {
@@ -205,6 +213,9 @@ func CreateTaskRunner(setupCmd string, cfg *config.TrustAgentConfiguration) (*se
 
 	case DefineTagIndexCommand:
 		runner.Tasks = append(runner.Tasks, defineTagIndexTask)
+
+	case DownloadApiTokenCommand:
+		runner.Tasks = append(runner.Tasks, downloadApiToken)
 
 	case DownloadCredentialCommand:
 		if cfg.Mode == constants.CommunicationModeOutbound {

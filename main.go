@@ -13,6 +13,17 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
+	commonExec "github.com/intel-secl/intel-secl/v4/pkg/lib/common/exec"
+	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/setup"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation"
+	"github.com/intel-secl/intel-secl/v4/pkg/lib/hostinfo"
+	"github.com/intel-secl/intel-secl/v4/pkg/model/hvs"
+	"github.com/pkg/errors"
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
 	"intel/isecl/go-trust-agent/v4/constants"
@@ -21,6 +32,7 @@ import (
 	_ "intel/isecl/go-trust-agent/v4/swagger/docs"
 	"intel/isecl/go-trust-agent/v4/tasks"
 	"intel/isecl/go-trust-agent/v4/util"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -29,16 +41,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"syscall"
-
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/setup"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils"
-
-	commonExec "github.com/intel-secl/intel-secl/v4/pkg/lib/common/exec"
-	commLog "github.com/intel-secl/intel-secl/v4/pkg/lib/common/log"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation"
-	"github.com/intel-secl/intel-secl/v4/pkg/lib/hostinfo"
-	"github.com/pkg/errors"
+	"time"
 )
 
 var log = commLog.GetDefaultLogger()
@@ -115,15 +118,19 @@ Available Tasks for 'setup', all commands support env file flag
                                                        - BEARER_TOKEN=<token>                              : for authenticating with AAS
                                                        - AAS_API_URL=<url>                                 : AAS API URL
                                                        - TA_HOST_ID=<ta-host-id>                           : FQDN of host
+  download-api-token                        - Fetches Custom Claims Token from AAS
+                                                    Required environment variables:
+                                                       - BEARER_TOKEN=<token>                              : for authenticating with AAS
+                                                       - AAS_API_URL=<url>                                 : AAS API URL
   update-certificates                       - Runs 'download-ca-cert' and 'download-cert'
                                                     Required environment variables:
-                                                        - CMS_BASE_URL=<url>                                : CMS API URL
-                                                        - CMS_TLS_CERT_SHA384=<CMS TLS cert sha384 hash>    : to ensure that TA is communicating with the right CMS instance
-                                                        - BEARER_TOKEN=<token>                              : for authenticating with CMS
+                                                       - CMS_BASE_URL=<url>                                : CMS API URL
+                                                       - CMS_TLS_CERT_SHA384=<CMS TLS cert sha384 hash>    : to ensure that TA is communicating with the right CMS instance
+                                                       - BEARER_TOKEN=<token>                              : for authenticating with CMS
                                                     Optional Environment variables:
-                                                        - SAN_LIST=<host1,host2.acme.com,...>               : CSV list that sets the value for SAN list in the TA TLS certificate.
+                                                       - SAN_LIST=<host1,host2.acme.com,...>               : CSV list that sets the value for SAN list in the TA TLS certificate.
                                                                                                               Defaults to "127.0.0.1,localhost".
-                                                        - TA_TLS_CERT_CN=<Common Name>                      : Sets the value for Common Name in the TA TLS certificate.  Defaults to "Trust Agent TLS Certificate".
+                                                       - TA_TLS_CERT_CN=<Common Name>                      : Sets the value for Common Name in the TA TLS certificate.  Defaults to "Trust Agent TLS Certificate".
 
   provision-attestation                     - Runs setup tasks associated with HVS/TPM provisioning.
                                                     Required environment variables:
@@ -539,6 +546,11 @@ func main() {
 			os.Exit(1)
 		}
 
+		err = sendAsyncReportRequest(cfg)
+		if err != nil {
+			asyncReportCreateRetry(cfg)
+		}
+
 		// Setup signal handlers to terminate service
 		stop := make(chan os.Signal)
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGKILL)
@@ -722,4 +734,68 @@ func fetchEndorsementCert(assetTagSecret string) error {
 	fmt.Printf("Issuer: %s\n", ekCert.Issuer.CommonName)
 	fmt.Printf("TPM Endorsment Certificate Base64 Encoded: %s\n", base64EncodedCert)
 	return nil
+}
+
+func sendAsyncReportRequest(cfg *config.TrustAgentConfiguration) error {
+	log.Trace("main:sendAsyncReportRequest() Entering")
+	defer log.Trace("main:sendAsyncReportRequest() Leaving")
+
+	var vsClientFactory hvsclient.HVSClientFactory
+	vsClientFactory, err := hvsclient.NewVSClientFactory(cfg.HVS.Url, cfg.ApiToken,
+		constants.TrustedCaCertsDir)
+	if err != nil {
+		// TA is not returning an error, since a user has to intervene to fix the issue, TA retrying infinitely would not be ideal in this case
+		log.WithError(err).Error("Could not initiate hvs reports client")
+		return nil
+	}
+	reportsClient, err := vsClientFactory.ReportsClient()
+	if err != nil {
+		// TA is not returning an error, since a user has to intervene to fix the issue, TA retrying infinitely would not be ideal in this case
+		log.WithError(err).Error("Could not create hvs reports client")
+		return nil
+	}
+
+	pInfo, err := util.ReadHostInfo()
+	if err != nil {
+		// TA is not returning an error, since a user has to intervene to fix the issue, TA retrying infinitely would not be ideal in this case
+		log.WithError(err).Errorf("Could not get host hardware uuid from %s file", constants.PlatformInfoFilePath)
+		return nil
+	}
+
+	reportsCreateReq := hvs.ReportCreateRequest{HardwareUUID: uuid.MustParse(pInfo.HardwareUUID)}
+	err, rsp := reportsClient.CreateReportAsync(reportsCreateReq)
+	if rsp != nil && rsp.StatusCode == http.StatusBadRequest {
+		log.WithError(err).Error("Could not request for a new host attestation from HVS, the host may not be registered with HVS")
+		return nil
+	} else if rsp != nil && rsp.StatusCode == http.StatusUnauthorized {
+		log.WithError(err).Error("Could not request for a new host attestation from HVS. Token expired, please update the token and restart TA")
+		return nil
+	} else if err != nil {
+		log.WithError(err).Error("Could not request for a new host attestation from HVS. TA will retry in few minutes")
+		return err
+	}
+	log.Debug("Successfully requested HVS to create a new trust report")
+	return nil
+}
+
+func asyncReportCreateRetry(cfg *config.TrustAgentConfiguration) {
+	log.Trace("main:asyncReportCreateRetry() Entering")
+	defer log.Trace("main:asyncReportCreateRetry() Leaving")
+
+	ticker := time.NewTicker(constants.DefaultAsyncReportRetryInterval * time.Minute)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				err := sendAsyncReportRequest(cfg)
+				if err == nil {
+					close(quit)
+				}
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }

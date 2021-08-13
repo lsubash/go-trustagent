@@ -64,7 +64,8 @@ type TrustAgentConfiguration struct {
 		CertSAN string // SAN_LIST
 		CertCN  string // TA_TLS_CERT_CN
 	}
-	Nats NatsService
+	Nats     NatsService
+	ApiToken string
 }
 
 var mu sync.Mutex
