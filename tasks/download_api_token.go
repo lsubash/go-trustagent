@@ -38,7 +38,7 @@ func (task *DownloadApiToken) Run(c setup.Context) error {
 	}
 
 	if task.hostHardwareUUID == "" {
-		return errors.Errorf("%s is not set", constants.EnvTAHostId)
+		return errors.Errorf("Host hardware UUID must be set to download API token from AAS")
 	}
 
 	if task.aasUrl == "" {
