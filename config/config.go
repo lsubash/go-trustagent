@@ -267,13 +267,13 @@ func (cfg *TrustAgentConfiguration) LogConfiguration(stdOut bool) {
 	defaultLogFile, _ := os.OpenFile(constants.DefaultLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 	err = os.Chmod(constants.DefaultLogFilePath, 0640)
 	if err != nil {
-		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", defaultLogFile)
+		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", defaultLogFile.Name())
 	}
 
 	secLogFile, _ := os.OpenFile(constants.SecurityLogFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 	err = os.Chmod(constants.SecurityLogFilePath, 0640)
 	if err != nil {
-		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", secLogFile)
+		log.Errorf("config/config:LogConfiguration() error in setting file permission for file : %s", secLogFile.Name())
 	}
 
 	ioWriterDefault = defaultLogFile
