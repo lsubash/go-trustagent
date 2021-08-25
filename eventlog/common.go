@@ -13,6 +13,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/pkg/errors"
 )
@@ -363,6 +364,11 @@ func createMeasureLog(buf *bytes.Buffer, size uint32, pcrEventLogs []PcrEventLog
 						if err != nil {
 							log.WithError(err).Warnf("eventlog/common:createMeasureLog() There is an error in getting Event Tag. PcrIndex = %x, EventType = %x", tcgPcrEvent2.PcrIndex, tcgPcrEvent2.EventType)
 						}
+						var cleanTags []string
+						for _, tag := range eventData[index].Tags {
+							cleanTags = append(cleanTags, removeUnicode(tag))
+						}
+						eventData[index].Tags = cleanTags
 					} else {
 						if eventData[hashIndex].TypeName != "" {
 							eventData[index].Tags = append(eventData[hashIndex].Tags, eventData[hashIndex].TypeName)
@@ -394,6 +400,16 @@ func createMeasureLog(buf *bytes.Buffer, size uint32, pcrEventLogs []PcrEventLog
 	}
 
 	return pcrEventLogs, nil
+}
+
+func removeUnicode(input string) string {
+	cleanInput := strings.Map(func(r rune) rune {
+		if unicode.IsPrint(r) {
+			return r
+		}
+		return -1
+	}, input)
+	return cleanInput
 }
 
 // GetHashData - Returns string of hash data, the incremented offset and buffer
