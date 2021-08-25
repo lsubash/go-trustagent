@@ -245,7 +245,7 @@ function generate_rhel8_menuentry()
 	sed -i "s/title*/title TCB-Protection/g" $MENUENTRY_FILE 
 
 	# update the 'initrd' value to the application-agent image
- 	sed -i "s/initrd \/$DEFAULT_INITRAMFS*/initrd \/$INITRD_NAME/g" $MENUENTRY_FILE 
+ 	sed -i "s/$DEFAULT_INITRAMFS/$INITRD_NAME/g" $MENUENTRY_FILE
 
         return
 }
