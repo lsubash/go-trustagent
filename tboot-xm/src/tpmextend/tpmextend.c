@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	version = atof(argv[3]);
+	version = strtod(argv[3], NULL);
 	if (version != 1.2 && version != 2.0) {
 		printf("Invalid TPM version found.\nCurrently supported TPM versions are 1.2 and 2.0\n");
        	return -1;
