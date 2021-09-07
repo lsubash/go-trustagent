@@ -78,7 +78,7 @@ func (task *DownloadApiToken) Run(c setup.Context) error {
 
 	apiTokenBytes, err := aasClient.GetCustomClaimsToken(createCustomerClaimsReq)
 	if err != nil {
-		return errors.Wrap(err, "Error while retrieving credential file from aas")
+		return errors.Wrap(err, "Error while getting custom claims token")
 	}
 
 	task.cfg.ApiToken = string(apiTokenBytes)
