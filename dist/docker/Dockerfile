@@ -3,17 +3,14 @@
 
 FROM centos:8
 
-RUN yum install -y tpm2-tss
-
 COPY out/tagent /usr/bin/tagent
 COPY dist/docker/entrypoint.sh /
 
-RUN mkdir -p /opt/trustagent/var/system-info/
-RUN mkdir /opt/trustagent/var/ramfs
-RUN mkdir /var/log/trustagent /config/
-
-RUN touch /.container-env
-RUN chmod +x /entrypoint.sh
+RUN yum install -y tpm2-tss && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.* && \
+    mkdir -p /opt/trustagent/var/system-info/ /opt/trustagent/var/ramfs /var/log/trustagent /config/ && \
+    touch /.container-env &&\
+    chmod +x /entrypoint.sh
 
 #Copy upgrade scripts
 COPY out/upgrades/container_upgrade.sh /container_upgrade.sh
