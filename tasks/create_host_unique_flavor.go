@@ -10,8 +10,7 @@ import (
 	"intel/isecl/lib/common/v4/setup"
 
 	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
-	"github.com/intel-secl/intel-secl/v4/pkg/hvs/domain/models"
-	cf "github.com/intel-secl/intel-secl/v4/pkg/lib/flavor/common"
+	"github.com/intel-secl/intel-secl/v4/pkg/model/hvs"
 	"github.com/pkg/errors"
 )
 
@@ -37,9 +36,9 @@ func (task *CreateHostUniqueFlavor) Run(c setup.Context) error {
 		return errors.Wrap(err, "The create-host-unique-flavor task requires the CURRENT_IP environment variable")
 	}
 
-	flavorCreateCriteria := models.FlavorCreateRequest{
+	flavorCreateCriteria := hvs.FlavorCreateRequest{
 		ConnectionString: util.GetConnectionString(currentIP, task.trustAgentPort),
-		FlavorParts:      []cf.FlavorPart{cf.FlavorPartHostUnique},
+		FlavorParts:      []hvs.FlavorPartName{hvs.FlavorPartHostUnique},
 	}
 
 	_, err = flavorsClient.CreateFlavor(&flavorCreateCriteria)

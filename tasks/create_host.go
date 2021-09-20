@@ -10,7 +10,6 @@ import (
 	"intel/isecl/lib/common/v4/setup"
 
 	"github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient"
-	"github.com/intel-secl/intel-secl/v4/pkg/hvs/domain/models"
 	"github.com/intel-secl/intel-secl/v4/pkg/model/hvs"
 	"github.com/pkg/errors"
 )
@@ -43,7 +42,7 @@ func (task *CreateHost) Run(c setup.Context) error {
 		return errors.Wrap(err, "The create-host task requires the CURRENT_IP environment variable")
 	}
 
-	hostCollection, err := hostsClient.SearchHosts(&models.HostFilterCriteria{NameEqualTo: currentIP.String()})
+	hostCollection, err := hostsClient.SearchHosts(&hvs.HostFilterCriteria{NameEqualTo: currentIP.String()})
 	if err != nil {
 		return errors.Wrap(err, "Error while retrieving host collection")
 	}
@@ -85,7 +84,7 @@ func (task *CreateHost) Validate(c setup.Context) error {
 		return errors.Wrap(err, "The create-host task requires the CURRENT_IP environment variable")
 	}
 
-	hostCollection, err := hostsClient.SearchHosts(&models.HostFilterCriteria{NameEqualTo: currentIP.String()})
+	hostCollection, err := hostsClient.SearchHosts(&hvs.HostFilterCriteria{NameEqualTo: currentIP.String()})
 	if err != nil {
 		return errors.Wrap(err, "Error searching for host collection")
 	}
