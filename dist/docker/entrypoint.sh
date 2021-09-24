@@ -1,8 +1,10 @@
 #!/bin/bash
 
-source /etc/secret-volume/secrets.txt
-export BEARER_TOKEN
-export TPM_OWNER_SECRET
+SECRETS=/etc/secrets
+IFS=$'\r\n' GLOBIGNORE='*' command eval 'secretFiles=($(ls  $SECRETS))'
+for i in "${secretFiles[@]}"; do
+    export $i=$(cat $SECRETS/$i)
+done
 
 COMPONENT_NAME=trustagent
 PRODUCT_HOME_DIR=/opt/$COMPONENT_NAME
@@ -53,6 +55,10 @@ if [ ! -z "$SETUP_TASK" ]; then
   done
   rm -rf /tmp/config.yml
 fi
+
+for i in "${secretFiles[@]}"; do
+    unset $i
+done
 
 tagent init
 tagent startService
