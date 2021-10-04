@@ -8,7 +8,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"os/signal"
 	"runtime/debug"
+	"syscall"
 
 	"intel/isecl/go-trust-agent/v4/common"
 	"intel/isecl/go-trust-agent/v4/config"
@@ -138,19 +140,26 @@ func (service *trustAgentWebService) Start() error {
 		IdleTimeout:       service.webParameters.IdleTimeout,
 		MaxHeaderBytes:    service.webParameters.MaxHeaderBytes,
 	}
-
+	stop := make(chan os.Signal)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	// dispatch web server go routine
 	go func() {
 		if err := service.server.ListenAndServeTLS(service.webParameters.TLSCertFilePath, service.webParameters.TLSKeyFilePath); err != nil {
 			secLog.Errorf("tasks/service:Start() %s", message.TLSConnectFailed)
 			secLog.WithError(err).Fatalf("server:startServer() Failed to start HTTPS server: %s\n", err.Error())
 			log.Tracef("%+v", err)
+			stop <- syscall.SIGTERM
 		}
 	}()
 	secLog.Info(message.ServiceStart)
 	secLog.Infof("TrustAgent service is running: %d", service.webParameters.Port)
 	log.Infof("TrustAgent service is running: %d", service.webParameters.Port)
-
+	<-stop
+	err := service.Stop()
+	if err != nil {
+		return err
+	}
+	secLog.Info(message.ServiceStop)
 	return nil
 }
 
