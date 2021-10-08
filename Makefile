@@ -67,7 +67,7 @@ unit_test: unit_test_bin
 	go tool cover -html=out/cover.out -o out/cover.html
 
 oci-archive: gta download_upgrade_scripts
-	docker build ${DOCKER_PROXY_FLAGS} -t isecl/tagent:$(VERSION) -f dist/docker/Dockerfile .
+	docker build ${DOCKER_PROXY_FLAGS} -t isecl/tagent:$(VERSION) --label org.label-schema.build-date=$(BUILDDATE) -f dist/docker/Dockerfile .
 	skopeo copy docker-daemon:isecl/tagent:$(VERSION) oci-archive:out/tagent-$(VERSION)-$(GITCOMMIT).tar
 
 k8s: oci-archive

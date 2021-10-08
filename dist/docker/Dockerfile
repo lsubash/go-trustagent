@@ -3,6 +3,11 @@
 
 FROM centos:8
 
+LABEL org.label-schema.name="Trustagent Agent" \
+      org.label-schema.vendor="Intel Corporation" \
+      org.label-schema.license="BSD-3-Clause" \
+      org.label-schema.url="https://github.com/intel-secl/intel-secl"
+
 COPY out/tagent /usr/bin/tagent
 COPY dist/docker/entrypoint.sh /
 
