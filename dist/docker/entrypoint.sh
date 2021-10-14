@@ -20,7 +20,7 @@ if [ -z "$SAN_LIST" ]; then
   echo $SAN_LIST
 fi
 
-if [ $TA_SERVICE_MODE == "outbound" ]; then
+if  [ ! -z "$TA_SERVICE_MODE" ] && [ "$TA_SERVICE_MODE" == "outbound" ]; then
   export TA_HOST_ID=$(hostname)
 fi
 
