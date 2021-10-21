@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVICE_NAME=tagent
-CURRENT_VERSION=v4.0.0
+CURRENT_VERSION=v4.0.1
 BACKUP_PATH=${BACKUP_PATH:-"/tmp/"}
 INSTALLED_EXEC_PATH="/opt/trustagent/bin/$SERVICE_NAME"
 CONFIG_PATH="/opt/trustagent/configuration/"
