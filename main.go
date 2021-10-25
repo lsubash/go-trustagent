@@ -540,10 +540,13 @@ func main() {
 			os.Exit(1)
 		}
 
+		// Setup signal handlers to terminate service
+		stop := make(chan os.Signal)
+		signal.Notify(stop, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGKILL)
 		err = trustAgentService.Start()
 		if err != nil {
 			log.WithError(err).Info("Failed to start service")
-			os.Exit(1)
+			stop <- syscall.SIGTERM
 		}
 
 		err = sendAsyncReportRequest(cfg)
@@ -551,11 +554,7 @@ func main() {
 			asyncReportCreateRetry(cfg)
 		}
 
-		// Setup signal handlers to terminate service
-		stop := make(chan os.Signal)
-		signal.Notify(stop, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGKILL)
 		<-stop
-
 		if err := trustAgentService.Stop(); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to shutdown service: %v\n", err)
 			log.WithError(err).Info("Failed to shutdown service")
