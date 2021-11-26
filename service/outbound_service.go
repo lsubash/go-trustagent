@@ -1,6 +1,8 @@
 package service
 
 import (
+	"golang.org/x/net/proxy"
+
 	"crypto/tls"
 	"crypto/x509"
 	"intel/isecl/go-trust-agent/v4/common"
@@ -82,7 +84,9 @@ func (subscriber *trustAgentOutboundService) Start() error {
 			} else {
 				log.WithError(err).Error("NATs error")
 			}
-		}))
+		}),
+		nats.SetCustomDialer(proxy.FromEnvironment()),
+	)
 
 	if err != nil {
 		return errors.Wrapf(err, "NATs failed to connect to url %q", subscriber.natsParameters.Servers)
@@ -95,109 +99,143 @@ func (subscriber *trustAgentOutboundService) Start() error {
 
 	// subscribe to quote-request messages
 	quoteSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsQuoteRequest)
-	subscriber.natsConnection.Subscribe(quoteSubject, func(subject string, reply string, quoteRequest *taModel.TpmQuoteRequest) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(quoteSubject, func(subject string, reply string,
+		quoteRequest *taModel.TpmQuoteRequest) error {
+		defer recoverFunc()
 
 		quoteResponse, err := subscriber.handler.GetTpmQuote(quoteRequest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle quote-request")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(reply, quoteResponse)
+		return subscriber.natsConnection.Publish(reply, quoteResponse)
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to quote-request messages")
+	}
 
 	//subscribe to host-info request messages
 	hostInfoSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsHostInfoRequest)
-	subscriber.natsConnection.Subscribe(hostInfoSubject, func(m *nats.Msg) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(hostInfoSubject, func(m *nats.Msg) error {
+		defer recoverFunc()
 
 		hostInfo, err := subscriber.handler.GetHostInfo()
 		if err != nil {
-			log.WithError(err).Error("Failed to handle quote-request")
+			log.WithError(err).Error("Failed to handle host-info")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(m.Reply, hostInfo)
+		return subscriber.natsConnection.Publish(m.Reply, hostInfo)
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to host-info messages")
+	}
 
 	// subscribe to aik request messages
 	aikSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsAikRequest)
-	subscriber.natsConnection.Subscribe(aikSubject, func(m *nats.Msg) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(aikSubject, func(m *nats.Msg) error {
+		defer recoverFunc()
 
 		aik, err := subscriber.handler.GetAikDerBytes()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle aik-request")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(m.Reply, aik)
+		return subscriber.natsConnection.Publish(m.Reply, aik)
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to aik-request messages")
+	}
 
 	// subscribe to deploy asset tag request messages
 	deployTagSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsDeployAssetTagRequest)
-	subscriber.natsConnection.Subscribe(deployTagSubject, func(subject string, reply string, tagWriteRequest *taModel.TagWriteRequest) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(deployTagSubject, func(subject string, reply string, tagWriteRequest *taModel.TagWriteRequest) error {
+		defer recoverFunc()
 
 		err := subscriber.handler.DeployAssetTag(tagWriteRequest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle deploy-asset-tag")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(reply, "")
+		return subscriber.natsConnection.Publish(reply, "")
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to deploy-asset-tag messages")
+	}
 
 	// subscribe to binding key request messages
 	bkSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsBkRequest)
-	subscriber.natsConnection.Subscribe(bkSubject, func(m *nats.Msg) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(bkSubject, func(m *nats.Msg) error {
+		defer recoverFunc()
 
 		bk, err := subscriber.handler.GetBindingCertificateDerBytes()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle get-binding-certificate")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(m.Reply, bk)
+		return subscriber.natsConnection.Publish(m.Reply, bk)
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to binding-key-request messages")
+	}
 
 	// subscribe to deploy manifest request messages
 	deployManifestSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsDeployManifestRequest)
-	subscriber.natsConnection.Subscribe(deployManifestSubject, func(subject string, reply string, manifest *taModel.Manifest) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(deployManifestSubject, func(subject string, reply string, manifest *taModel.Manifest) error {
+		defer recoverFunc()
 
 		err = subscriber.handler.DeploySoftwareManifest(manifest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle deploy-manifest")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(reply, "")
+		return subscriber.natsConnection.Publish(reply, "")
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to deploy-manifest messages")
+	}
 
 	// subscribe to application measurement request messages
 	applicationMeasurementSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsApplicationMeasurementRequest)
-	subscriber.natsConnection.Subscribe(applicationMeasurementSubject, func(subject string, reply string, manifest *taModel.Manifest) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(applicationMeasurementSubject, func(subject string, reply string, manifest *taModel.Manifest) error {
+		defer recoverFunc()
 
 		measurement, err := subscriber.handler.GetApplicationMeasurement(manifest)
 		if err != nil {
 			log.WithError(err).Error("Failed to handle application-measurement-request")
+			return err
 		}
 
-		subscriber.natsConnection.Publish(reply, measurement)
+		return subscriber.natsConnection.Publish(reply, measurement)
 	})
+	if err != nil {
+		return err
+	}
 
 	// subscribe to version requests
 	versionSubject := taModel.CreateSubject(subscriber.natsParameters.HostID, taModel.NatsVersionRequest)
-	subscriber.natsConnection.Subscribe(versionSubject, func(m *nats.Msg) {
-		defer recoverFunc()()
+	_, err = subscriber.natsConnection.Subscribe(versionSubject, func(m *nats.Msg) error {
+		defer recoverFunc()
 
 		versionInfo, err := util.GetVersionInfo()
 		if err != nil {
 			log.WithError(err).Error("Failed to handle version-request")
 		}
 
-		subscriber.natsConnection.Publish(m.Reply, versionInfo)
+		return subscriber.natsConnection.Publish(m.Reply, versionInfo)
 	})
+	if err != nil {
+		return errors.Wrapf(err, "NATs client failed to create subscription to version messages")
+	}
 
-	log.Infof("Outbound Trust-Agent %q connected to %q", subscriber.natsParameters.HostID, subscriber.natsConnection.Conn.ConnectedAddr())
+	if conn.IsConnected() {
+		log.Infof("Outbound Trust-Agent %q connected to %q", subscriber.natsParameters.HostID, subscriber.natsConnection.Conn.ConnectedAddr())
+	}
 	return nil
 }
 
@@ -206,10 +244,8 @@ func (subscriber *trustAgentOutboundService) Stop() error {
 	return nil
 }
 
-func recoverFunc() func() {
-	return func() {
-		if err := recover(); err != nil {
-			log.Errorf("Panic occurred: %+v\n%s", err, string(debug.Stack()))
-		}
+func recoverFunc() {
+	if err := recover(); err != nil {
+		log.Errorf("Panic occurred: %+v\n%s", err, string(debug.Stack()))
 	}
 }
