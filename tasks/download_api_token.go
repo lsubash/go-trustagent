@@ -66,7 +66,7 @@ func (task *DownloadApiToken) Run(c setup.Context) error {
 	perms := []types.PermissionInfo{}
 	perms = append(perms, types.PermissionInfo{
 		Service: constants.VerificationServiceName,
-		Rules:   []string{"reports:create:*"},
+		Rules:   []string{"reports:create:*", "hosts:search:*"},
 	})
 	permission["permissions"] = perms
 

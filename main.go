@@ -40,6 +40,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -747,10 +748,9 @@ func sendAsyncReportRequest(cfg *config.TrustAgentConfiguration) error {
 		log.WithError(err).Error("Could not initiate hvs reports client")
 		return nil
 	}
-	reportsClient, err := vsClientFactory.ReportsClient()
+	hostsClient, err := vsClientFactory.HostsClient()
 	if err != nil {
-		// TA is not returning an error, since a user has to intervene to fix the issue, TA retrying infinitely would not be ideal in this case
-		log.WithError(err).Error("Could not create hvs reports client")
+		log.WithError(err).Error("Could not get the hvs hosts client")
 		return nil
 	}
 
@@ -760,20 +760,33 @@ func sendAsyncReportRequest(cfg *config.TrustAgentConfiguration) error {
 		log.WithError(err).Errorf("Could not get host hardware uuid from %s file", constants.PlatformInfoFilePath)
 		return nil
 	}
-
-	reportsCreateReq := hvs.ReportCreateRequest{HardwareUUID: uuid.MustParse(pInfo.HardwareUUID)}
-	err, rsp := reportsClient.CreateReportAsync(reportsCreateReq)
-	if rsp != nil && rsp.StatusCode == http.StatusBadRequest {
-		log.WithError(err).Error("Could not request for a new host attestation from HVS, the host may not be registered with HVS")
-		return nil
-	} else if rsp != nil && rsp.StatusCode == http.StatusUnauthorized {
-		log.WithError(err).Error("Could not request for a new host attestation from HVS. Token expired, please update the token and restart TA")
+	hostFilterCriteria := &hvs.HostFilterCriteria{HostHardwareId: uuid.MustParse(pInfo.HardwareUUID)}
+	hostCollection, err := hostsClient.SearchHosts(hostFilterCriteria);
+	if err != nil && strings.Contains(err.Error(), "401") {
+		log.WithError(err).Error("Could not get host details from HVS. Token expired, please update the token and restart TA")
 		return nil
 	} else if err != nil {
-		log.WithError(err).Error("Could not request for a new host attestation from HVS. TA will retry in few minutes")
+		log.WithError(err).Error("Could not get host details from HVS. TA will retry in few minutes")
 		return err
 	}
-	log.Debug("Successfully requested HVS to create a new trust report")
+	if len(hostCollection.Hosts) > 0 {
+		reportsClient, err := vsClientFactory.ReportsClient()
+		if err != nil {
+			// TA is not returning an error, since a user has to intervene to fix the issue, TA retrying infinitely would not be ideal in this case
+			log.WithError(err).Error("Could not create hvs reports client")
+			return nil
+		}
+		reportsCreateReq := hvs.ReportCreateRequest{HardwareUUID: uuid.MustParse(pInfo.HardwareUUID)}
+		err, rsp := reportsClient.CreateReportAsync(reportsCreateReq)
+		if rsp != nil && rsp.StatusCode == http.StatusUnauthorized {
+			log.WithError(err).Error("Could not request for a new host attestation from HVS. Token expired, please update the token and restart TA")
+			return nil
+		} else if err != nil {
+			log.WithError(err).Error("Could not request for a new host attestation from HVS. TA will retry in few minutes")
+			return err
+		}
+		log.Debug("Successfully requested HVS to create a new trust report")
+	}
 	return nil
 }
 
