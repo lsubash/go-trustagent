@@ -762,7 +762,7 @@ func sendAsyncReportRequest(cfg *config.TrustAgentConfiguration) error {
 	}
 	hostFilterCriteria := &hvs.HostFilterCriteria{HostHardwareId: uuid.MustParse(pInfo.HardwareUUID)}
 	hostCollection, err := hostsClient.SearchHosts(hostFilterCriteria);
-	if err != nil && strings.Contains(err.Error(), "401") {
+	if err != nil && strings.Contains(err.Error(), http.StatusUnauthorized) {
 		log.WithError(err).Error("Could not get host details from HVS. Token expired, please update the token and restart TA")
 		return nil
 	} else if err != nil {
