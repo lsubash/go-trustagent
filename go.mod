@@ -18,4 +18,5 @@ require (
 replace (
 	intel/isecl/lib/common/v4 => github.com/intel-secl/common/v4 v4.1.0-Beta
 	intel/isecl/lib/tpmprovider/v4 => github.com/intel-secl/tpm-provider/v4 v4.1.0-Beta
+	github.com/intel-secl/intel-secl/v4 => github.com/intel-secl/intel-secl/v4 v4.1.0-Beta
 )
