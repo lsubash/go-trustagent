@@ -291,6 +291,7 @@ int generateMeasurementLogs(FILE *fp, char *mountPath) {
 			log_debug("Size of Hash used : %d",cumulative_hash_len);
 			replaceAllStr(line, "Manifest", "Measurement");
 			replaceAllStr(line, "manifest", "measurement");
+			replaceAllStr(line, "/>", ">");
 			fprintf(fq,"%s", tokenizeString(line, "\n"));
 		    }
 		}
