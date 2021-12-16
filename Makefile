@@ -13,7 +13,7 @@ else
 endif
 MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl"
 #TODO use the latest tag
-MONOREPO_GITBRANCH := "v4.1.0-Beta"
+MONOREPO_GITBRANCH := "v4.1.0"
 
 gta:
 	env GOOS=linux GOSUMDB=off GOPROXY=direct go mod tidy && env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
