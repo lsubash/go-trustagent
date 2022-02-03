@@ -1,7 +1,7 @@
 # Copyright (C) 2021 Intel Corporation
 # SPDX-License-Identifier: BSD-3-Clause
 
-FROM centos:8
+FROM ubuntu:focal
 
 LABEL org.label-schema.name="Trustagent Agent" \
       org.label-schema.vendor="Intel Corporation" \
@@ -11,8 +11,8 @@ LABEL org.label-schema.name="Trustagent Agent" \
 COPY out/tagent /usr/bin/tagent
 COPY dist/docker/entrypoint.sh /
 
-RUN yum install -y tpm2-tss && \
-    rm -rf /var/cache /var/log/dnf* /var/log/yum.* && \
+RUN apt-get update -y && apt-get install -y libtss2-esys0 && \
+    apt-get clean && apt-get autoclean && \
     mkdir -p /opt/trustagent/var/system-info/ /opt/trustagent/var/ramfs /var/log/trustagent /config/ && \
     touch /.container-env &&\
     chmod +x /entrypoint.sh
