@@ -16,7 +16,7 @@ require (
 )
 
 replace (
-	intel/isecl/lib/common/v4 => gitlab.devtools.intel.com/sst/isecl/lib/common.git/v4 v4.2/develop
-	intel/isecl/lib/tpmprovider/v4 => gitlab.devtools.intel.com/sst/isecl/lib/tpm-provider.git/v4 v4.2/develop
-	github.com/intel-secl/intel-secl/v4 => gitlab.devtools.intel.com/sst/isecl/intel-secl.git/v4 v4.2/develop
+ 	github.com/intel-secl/intel-secl/v4 => github.com/intel-innersource/applications.security.isecl.intel-secl/v4 v4.2/develop
+	intel/isecl/lib/common/v4 => github.com/intel-innersource/libraries.security.isecl.common/v4 v4.2/develop
+	intel/isecl/lib/tpmprovider/v4 => github.com/intel-innersource/libraries.security.isecl.tpm-provider/v4 v4.2/develop
 )
