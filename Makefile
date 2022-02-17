@@ -11,9 +11,9 @@ ifeq ($(PROXY_EXISTS),1)
 else
 	undefine DOCKER_PROXY_FLAGS
 endif
-MONOREPO_GITURL := "https://github.com/intel-innersource/applications.security.isecl.intel-secl"
+MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl"
 #TODO use the latest tag
-MONOREPO_GITBRANCH := "v4.0.2/develop"
+MONOREPO_GITBRANCH := "v4.0.2"
 
 gta:
 	env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
