@@ -16,7 +16,7 @@ require (
 )
 
 replace (
-	github.com/intel-secl/intel-secl/v4 => github.com/intel-secl/common/v4 v4.1.1
-	intel/isecl/lib/common/v4 => github.com/intel-secl/tpm-provider/v4 v4.1.1
-	intel/isecl/lib/tpmprovider/v4 => github.com/intel-secl/intel-secl/v4 v4.1.1
+       intel/isecl/lib/common/v4 => github.com/intel-secl/common/v4 v4.1.1
+       intel/isecl/lib/tpmprovider/v4 => github.com/intel-secl/tpm-provider/v4 v4.1.1
+       github.com/intel-secl/intel-secl/v4 => github.com/intel-secl/intel-secl/v4 v4.1.1
 )
