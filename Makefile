@@ -11,7 +11,7 @@ ifeq ($(PROXY_EXISTS),1)
 else
 	undefine DOCKER_PROXY_FLAGS
 endif
-MONOREPO_GITURL := "https://github.com/intel-innersource/applications.security.isecl.intel-secl.git"
+MONOREPO_GITURL := "https://gitlab.devtools.intel.com/sst/isecl/intel-secl.git"
 #TODO use the latest tag
 MONOREPO_GITBRANCH := "v4.2/develop"
 
