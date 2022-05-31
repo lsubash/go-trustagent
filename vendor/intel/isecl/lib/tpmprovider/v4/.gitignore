@@ -1,0 +1,9 @@
+*/out
+*/tpmout
+go.sum
+*.log
+cover.*
+NVChip*
+*.test
+*.pem
+*.crt

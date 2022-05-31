@@ -1,0 +1,131 @@
+# github.com/Waterdrips/jwt-go v3.2.1-0.20200915121943-f6506928b72e+incompatible
+## explicit
+github.com/Waterdrips/jwt-go
+# github.com/cloudflare/cfssl v1.5.0
+## explicit; go 1.14
+github.com/cloudflare/cfssl/crypto/pkcs7
+github.com/cloudflare/cfssl/errors
+github.com/cloudflare/cfssl/helpers
+github.com/cloudflare/cfssl/helpers/derhelpers
+github.com/cloudflare/cfssl/log
+github.com/cloudflare/cfssl/revoke
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
+# github.com/google/certificate-transparency-go v1.0.21
+## explicit
+github.com/google/certificate-transparency-go
+github.com/google/certificate-transparency-go/asn1
+github.com/google/certificate-transparency-go/tls
+github.com/google/certificate-transparency-go/x509
+github.com/google/certificate-transparency-go/x509/pkix
+# github.com/google/uuid v1.2.0
+## explicit
+github.com/google/uuid
+# github.com/gorilla/handlers v1.4.2
+## explicit
+github.com/gorilla/handlers
+# github.com/gorilla/mux v1.7.3
+## explicit
+github.com/gorilla/mux
+# github.com/intel-secl/intel-secl/v4 v4.2.0-Beta
+## explicit
+github.com/intel-secl/intel-secl/v4/pkg/authservice/constants
+github.com/intel-secl/intel-secl/v4/pkg/authservice/types
+github.com/intel-secl/intel-secl/v4/pkg/clients
+github.com/intel-secl/intel-secl/v4/pkg/clients/aas
+github.com/intel-secl/intel-secl/v4/pkg/clients/hvsclient
+github.com/intel-secl/intel-secl/v4/pkg/clients/util
+github.com/intel-secl/intel-secl/v4/pkg/hvs/constants/verifier-rules-and-faults
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/auth
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/config
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/context
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/crypt
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/exec
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/jwt
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/log
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/message
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/log/setup
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/middleware
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/os
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/setup
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/utils
+github.com/intel-secl/intel-secl/v4/pkg/lib/common/validation
+github.com/intel-secl/intel-secl/v4/pkg/lib/flavor/constants
+github.com/intel-secl/intel-secl/v4/pkg/lib/host-connector/constants
+github.com/intel-secl/intel-secl/v4/pkg/lib/hostinfo
+github.com/intel-secl/intel-secl/v4/pkg/lib/privacyca
+github.com/intel-secl/intel-secl/v4/pkg/lib/privacyca/constants
+github.com/intel-secl/intel-secl/v4/pkg/lib/privacyca/tpm2utils
+github.com/intel-secl/intel-secl/v4/pkg/lib/privacyca/types
+github.com/intel-secl/intel-secl/v4/pkg/model/aas
+github.com/intel-secl/intel-secl/v4/pkg/model/hvs
+github.com/intel-secl/intel-secl/v4/pkg/model/ta
+github.com/intel-secl/intel-secl/v4/pkg/model/wlagent
+# github.com/nats-io/nats.go v1.11.1-0.20210623165838-4b75fc59ae30
+## explicit; go 1.16
+github.com/nats-io/nats.go
+github.com/nats-io/nats.go/encoders/builtin
+github.com/nats-io/nats.go/util
+# github.com/nats-io/nkeys v0.3.0
+## explicit; go 1.16
+github.com/nats-io/nkeys
+# github.com/nats-io/nuid v1.0.1
+## explicit
+github.com/nats-io/nuid
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/sirupsen/logrus v1.7.0
+## explicit; go 1.13
+github.com/sirupsen/logrus
+# github.com/stretchr/objx v0.1.1
+## explicit
+github.com/stretchr/objx
+# github.com/stretchr/testify v1.6.1
+## explicit; go 1.13
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/mock
+# golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
+## explicit; go 1.17
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+golang.org/x/crypto/cryptobyte
+golang.org/x/crypto/cryptobyte/asn1
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/ocsp
+golang.org/x/crypto/pkcs12
+golang.org/x/crypto/pkcs12/internal/rc2
+# golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+## explicit; go 1.11
+golang.org/x/net/internal/socks
+golang.org/x/net/proxy
+# golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15
+gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+## explicit
+gopkg.in/yaml.v3
+# intel/isecl/lib/common/v4 v4.2.0-Beta => github.com/intel-secl/common/v4 v4.2.0-Beta
+## explicit
+intel/isecl/lib/common/v4/crypt
+intel/isecl/lib/common/v4/log
+intel/isecl/lib/common/v4/log/setup
+intel/isecl/lib/common/v4/os
+intel/isecl/lib/common/v4/serialize
+intel/isecl/lib/common/v4/setup
+intel/isecl/lib/common/v4/validation
+# intel/isecl/lib/tpmprovider/v4 v4.2.0-Beta => github.com/intel-secl/tpm-provider/v4 v4.2.0-Beta
+## explicit
+intel/isecl/lib/tpmprovider/v4
+# intel/isecl/lib/common/v4 => github.com/intel-secl/common/v4 v4.2.0-Beta
+# intel/isecl/lib/tpmprovider/v4 => github.com/intel-secl/tpm-provider/v4 v4.2.0-Beta
