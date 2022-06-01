@@ -16,7 +16,7 @@ MONOREPO_GITURL := "https://github.com/intel-secl/intel-secl"
 MONOREPO_GITBRANCH := "v4.2.0-Beta"
 
 gta:
-	env GOOS=linux GOSUMDB=off GOPROXY=direct go mod tidy && env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -mod=vendor -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
+	env GOOS=linux GOSUMDB=off GOPROXY=direct && env CGO_CFLAGS_ALLOW="-f.*" GOOS=linux GOSUMDB=off GOPROXY=direct go build -ldflags "-X intel/isecl/go-trust-agent/v4/util.Branch=$(GITBRANCH) -X intel/isecl/go-trust-agent/v4/util.Version=$(VERSION) -X intel/isecl/go-trust-agent/v4/util.GitHash=$(GITCOMMIT) -X intel/isecl/go-trust-agent/v4/util.BuildDate=$(BUILDDATE)" -o out/tagent
 
 swagger-get:
 	wget https://github.com/go-swagger/go-swagger/releases/download/v0.21.0/swagger_linux_amd64 -O /usr/local/bin/swagger
